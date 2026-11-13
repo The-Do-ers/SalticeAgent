@@ -1,0 +1,5 @@
+{
+  "app:version": "2.4.0",
+  "app:framework": "html5_canvas_glass",
+  "app:vector_provider": "iconify_presets"
+}

@@ -1,0 +1,68 @@
+# Environment & Secrets (NEVER COMMIT SENSITIVE KEYS)
+.env
+*.env
+!.env.example
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Packaging & Distribution
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Databases & Runtime State
+telemetry.db
+*.db
+*.sqlite
+*.sqlite3
+.saltice/sessions/
+.saltice/tool_logs/
+.saltice/vector_stores/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary Subagent Outputs
+subagent_output.txt
+temp_*/

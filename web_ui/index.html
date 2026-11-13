@@ -1,0 +1,1896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saltice • Autonomous Agent Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg-base: #050507;
+      --bg-surface: rgba(18, 18, 22, 0.72);
+      --bg-card: rgba(255, 255, 255, 0.035);
+      --bg-card-hover: rgba(255, 255, 255, 0.06);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.22);
+      --border-active: rgba(255, 255, 255, 0.4);
+      --accent-white: #ffffff;
+      --text-main: #ffffff;
+      --text-muted: #a1a1aa;
+      --text-dim: #71717a;
+      --user-bubble: rgba(255, 255, 255, 0.06);
+      --user-border: rgba(255, 255, 255, 0.14);
+      --agent-bubble: rgba(16, 16, 20, 0.78);
+      --agent-border: rgba(255, 255, 255, 0.09);
+      --glass-blur: 24px;
+      --accent-glow: rgba(255, 255, 255, 0.15);
+      --success-glow: #10b981;
+      --warning-glow: #f59e0b;
+      --danger-glow: #ef4444;
+      --live-badge-bg: rgba(255, 255, 255, 0.08);
+      --live-border: rgba(255, 255, 255, 0.16);
+    }
+
+    /* Clean Frosted Pearl Light Theme */
+    body.light-theme {
+      --bg-base: #f5f6f9;
+      --bg-surface: rgba(255, 255, 255, 0.85);
+      --bg-card: rgba(0, 0, 0, 0.03);
+      --bg-card-hover: rgba(0, 0, 0, 0.06);
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --border-hover: rgba(0, 0, 0, 0.2);
+      --border-active: rgba(0, 0, 0, 0.35);
+      --accent-white: #000000;
+      --text-main: #09090b;
+      --text-muted: #52525b;
+      --text-dim: #71717a;
+      --user-bubble: rgba(0, 0, 0, 0.05);
+      --user-border: rgba(0, 0, 0, 0.12);
+      --agent-bubble: rgba(255, 255, 255, 0.95);
+      --agent-border: rgba(0, 0, 0, 0.08);
+      --glass-blur: 20px;
+      --accent-glow: rgba(0, 0, 0, 0.08);
+      --live-badge-bg: rgba(0, 0, 0, 0.06);
+      --live-border: rgba(0, 0, 0, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-subtle) transparent;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-base);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* Ambient Subtle Monochrome Glow */
+    .glow-ambient {
+      position: absolute;
+      width: 550px;
+      height: 550px;
+      border-radius: 50%;
+      filter: blur(160px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.04;
+      background: var(--accent-white);
+    }
+    .glow-top { top: -220px; left: 25%; }
+    .glow-bottom { bottom: -220px; right: 25%; }
+
+    /* Layout Containers */
+    #sidebar {
+      width: 320px;
+      min-width: 300px;
+      height: 100vh;
+      background: var(--bg-surface);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      padding: 20px 16px;
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
+      transition: background 0.25s ease, border-color 0.25s ease;
+    }
+
+    #main {
+      flex: 1;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 5;
+      background: transparent;
+    }
+
+    /* Brand Header */
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding: 0 4px;
+    }
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-main);
+    }
+    .brand-badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success-glow);
+      box-shadow: 0 0 8px var(--success-glow);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.3; }
+      50% { opacity: 1; }
+      100% { opacity: 0.3; }
+    }
+
+    /* New Chat Button */
+    .btn-new-chat {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 11px 16px;
+      background: var(--accent-white);
+      border: 1px solid var(--accent-white);
+      border-radius: 10px;
+      color: var(--bg-base);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+    .btn-new-chat:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      filter: brightness(0.95);
+    }
+
+    /* Workspace Card */
+    .workspace-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      backdrop-filter: blur(12px);
+    }
+    .workspace-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .btn-change-ws {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .btn-change-ws:hover {
+      color: var(--text-main);
+    }
+    .workspace-path {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      direction: rtl;
+      text-align: left;
+    }
+
+    /* Engine Mode Dropdown */
+    .mode-select-group {
+      margin-bottom: 14px;
+    }
+    .mode-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      display: block;
+      letter-spacing: 0.5px;
+    }
+    .select-glass {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text-main);
+      font-size: 0.84rem;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .select-glass:focus {
+      border-color: var(--border-active);
+    }
+    .select-glass option {
+      background: #121214;
+      color: #ffffff;
+    }
+
+    /* Sessions History */
+    .history-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      letter-spacing: 0.5px;
+    }
+    .sessions-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-right: 4px;
+    }
+    .session-item {
+      padding: 9px 12px;
+      border-radius: 8px;
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      position: relative;
+    }
+    .session-item:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-subtle);
+    }
+    .session-item.active {
+      background: var(--bg-card);
+      border-color: var(--border-active);
+    }
+    .session-goal {
+      font-size: 0.83rem;
+      font-weight: 500;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 22px;
+    }
+    .session-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.67rem;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .btn-delete-session {
+      position: absolute;
+      right: 8px;
+      top: 9px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s, color 0.2s;
+      padding: 2px;
+    }
+    .session-item:hover .btn-delete-session {
+      opacity: 0.7;
+    }
+    .btn-delete-session:hover {
+      opacity: 1 !important;
+      color: var(--danger-glow);
+    }
+
+    /* Main Chat Top Bar */
+    .top-bar {
+      height: 56px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 8;
+    }
+    .session-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .current-title {
+      font-weight: 600;
+      font-size: 0.92rem;
+      color: var(--text-main);
+    }
+    .badge-pill {
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-top {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 5px 10px;
+      color: var(--text-main);
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-top:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-1px);
+    }
+    .badge-counter {
+      background: var(--accent-white);
+      color: var(--bg-base);
+      font-size: 0.65rem;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 1px 5px;
+    }
+
+    /* Chat Messages View */
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Empty Welcome State */
+    .empty-state {
+      margin: auto;
+      max-width: 580px;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .empty-icon {
+      font-size: 2.6rem;
+      margin-bottom: 14px;
+      filter: drop-shadow(0 0 16px var(--accent-glow));
+    }
+    .empty-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+      color: var(--text-main);
+    }
+    .empty-desc {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+    .quick-chips {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+    .chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 7px 13px;
+      font-size: 0.8rem;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .chip:hover {
+      border-color: var(--border-hover);
+      background: var(--bg-card-hover);
+      transform: translateY(-1px);
+    }
+
+    /* Message Bubbles */
+    .message-row {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    .message-row.user {
+      align-items: flex-end;
+    }
+    .message-row.agent {
+      align-items: flex-start;
+    }
+
+    .bubble {
+      max-width: 84%;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      position: relative;
+    }
+    .bubble.user {
+      background: var(--user-bubble);
+      border: 1px solid var(--user-border);
+      color: var(--text-main);
+      border-bottom-right-radius: 3px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+    .bubble.agent {
+      background: var(--agent-bubble);
+      border: 1px solid var(--agent-border);
+      color: var(--text-main);
+      border-bottom-left-radius: 3px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+    }
+
+    /* Markdown Code & Content */
+    .bubble.agent pre {
+      background: #09090c;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 12px 0;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.83rem;
+      color: #f4f4f5;
+    }
+    .bubble.agent code {
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      color: var(--text-main);
+    }
+    .bubble.agent pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+    .bubble.agent h1, .bubble.agent h2, .bubble.agent h3 {
+      margin: 14px 0 8px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .bubble.agent ul, .bubble.agent ol {
+      margin: 8px 0 8px 20px;
+    }
+    .bubble.agent p {
+      margin-bottom: 8px;
+    }
+    .bubble.agent p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Touched Files Banner */
+    .touched-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-main);
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 4px 8px;
+      margin-top: 10px;
+    }
+
+    /* Real-Time Live Execution Feed Card */
+    .live-execution-card {
+      max-width: 84%;
+      background: var(--bg-surface);
+      border: 1px solid var(--live-border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(var(--glass-blur));
+      margin-bottom: 8px;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .live-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 8px;
+    }
+    .live-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .live-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      padding: 2px 7px;
+      border-radius: 10px;
+      background: var(--live-badge-bg);
+      border: 1px solid var(--live-border);
+      color: var(--text-muted);
+    }
+    .live-steps-stream {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 260px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .live-step-item {
+      font-size: 0.78rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      animation: slideIn 0.15s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-4px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .live-step-item.thought {
+      color: var(--text-muted);
+      font-style: italic;
+      border-left: 2px solid var(--warning-glow);
+    }
+    .live-step-item.tool {
+      font-family: 'JetBrains Mono', monospace;
+      border-left: 2px solid #3b82f6;
+    }
+    .live-step-item.browser {
+      border-left: 2px solid var(--success-glow);
+    }
+    .live-step-icon {
+      flex-shrink: 0;
+      font-size: 0.9rem;
+      margin-top: 1px;
+    }
+    .live-step-text {
+      flex: 1;
+      word-break: break-word;
+    }
+    .live-step-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    /* Execution Steps Accordion in Completed Message */
+    .steps-accordion {
+      margin-bottom: 12px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      background: var(--bg-card);
+      overflow: hidden;
+    }
+    .steps-toggle-btn {
+      width: 100%;
+      text-align: left;
+      padding: 6px 10px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .steps-toggle-btn:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-main);
+    }
+    .steps-content {
+      display: none;
+      padding: 8px 10px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 0.75rem;
+      max-height: 200px;
+      overflow-y: auto;
+      gap: 6px;
+      flex-direction: column;
+    }
+
+    /* Feedback & Reinforcement Action Bar */
+    .message-feedback-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      padding-left: 4px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .message-row.agent:hover .message-feedback-bar {
+      opacity: 1;
+    }
+    .feedback-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 4px 8px;
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .feedback-btn:hover {
+      background: var(--bg-card);
+      border-color: var(--border-subtle);
+      color: var(--text-main);
+    }
+    .feedback-btn.active-pos {
+      color: var(--success-glow);
+      border-color: var(--success-glow);
+      background: rgba(16, 185, 129, 0.1);
+    }
+    .feedback-btn.active-neg {
+      color: var(--danger-glow);
+      border-color: var(--danger-glow);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* Floating Input Area */
+    .input-area {
+      padding: 14px 20px 18px;
+      position: relative;
+    }
+    .input-box-wrapper {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      background: var(--bg-surface);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 10px 14px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-box-wrapper:focus-within {
+      border-color: var(--border-active);
+      box-shadow: 0 0 24px var(--accent-glow);
+    }
+    #chat-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      resize: none;
+      max-height: 180px;
+      min-height: 24px;
+    }
+    #chat-input::placeholder {
+      color: var(--text-dim);
+    }
+    .btn-send {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--accent-white);
+      border: none;
+      color: var(--bg-base);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .btn-send:hover {
+      box-shadow: 0 0 14px var(--accent-glow);
+      transform: scale(1.04);
+    }
+    .btn-send:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Modal Framework */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-glass {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hover);
+      border-radius: 16px;
+      max-width: 540px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(28px);
+      position: relative;
+      animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalPop {
+      from { transform: scale(0.96); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+    }
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-close-modal {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .btn-close-modal:hover {
+      color: var(--text-main);
+    }
+    .tag-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .tag-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 0.8rem;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .tag-pill:hover, .tag-pill.selected {
+      background: var(--bg-card-hover);
+      border-color: var(--border-active);
+      color: var(--text-main);
+    }
+    .modal-textarea {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 10px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+      resize: vertical;
+      min-height: 70px;
+      margin-bottom: 16px;
+    }
+    .modal-textarea:focus {
+      border-color: var(--border-active);
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .btn-primary {
+      background: var(--accent-white);
+      color: var(--bg-base);
+      border: none;
+      border-radius: 8px;
+      padding: 9px 16px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-primary:hover {
+      filter: brightness(0.9);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      border-radius: 8px;
+      padding: 9px 16px;
+      font-weight: 500;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .btn-secondary:hover {
+      border-color: var(--border-hover);
+      color: var(--text-main);
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hover);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: var(--text-main);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(20px);
+      pointer-events: auto;
+      animation: toastIn 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    @keyframes toastIn {
+      from { transform: translateX(20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Glow -->
+  <div class="glow-ambient glow-top"></div>
+  <div class="glow-ambient glow-bottom"></div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div class="brand">
+      <div class="brand-title">
+        <span>⚡ Saltice</span>
+      </div>
+      <div class="brand-badge">
+        <div class="pulse-dot"></div>
+        Ready
+      </div>
+    </div>
+
+    <button class="btn-new-chat" onclick="createNewSession()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      New Chat
+    </button>
+
+    <!-- Workspace Info Card -->
+    <div class="workspace-card">
+      <div class="workspace-header">
+        <span>Workspace</span>
+        <button class="btn-change-ws" onclick="promptChangeWorkspace()">Change</button>
+      </div>
+      <div class="workspace-path" id="ws-path" title="Current working directory">Loading...</div>
+    </div>
+
+    <!-- Operating Mode Selector -->
+    <div class="mode-select-group">
+      <label class="mode-label">Engine Mode</label>
+      <select id="mode-select" class="select-glass">
+        <option value="builder" selected>⚡ Builder (Autonomous Loop)</option>
+        <option value="local">💻 Local Offline (Ollama / LM Studio)</option>
+        <option value="gemini">🌐 Gemini 2.0 (High Quota Cloud)</option>
+        <option value="mistral">⚡ Mistral / Codestral</option>
+        <option value="groq">⚡ Groq Ultra-Fast</option>
+        <option value="openrouter">🚀 OpenRouter Gateway</option>
+      </select>
+    </div>
+
+    <!-- Sessions History List -->
+    <div class="history-title">
+      <span>Chat History</span>
+      <span id="session-count" style="font-family: 'JetBrains Mono', monospace; color: var(--text-dim);">0</span>
+    </div>
+    <div class="sessions-list" id="sessions-list">
+      <!-- Session items rendered dynamically -->
+    </div>
+  </div>
+
+  <!-- Main View -->
+  <div id="main">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="session-info">
+        <span class="current-title" id="chat-title">New Conversation</span>
+        <span class="badge-pill" id="active-mode-badge">Builder</span>
+        <span class="badge-pill" id="session-id-badge">ID: Loading...</span>
+      </div>
+
+      <div class="top-actions">
+        <!-- Anti-Pattern Constraints Manager -->
+        <button class="btn-top" onclick="openAntiPatternsModal()" title="View and configure learned negative feedback constraints">
+          <span>🛡️ Anti-Patterns</span>
+          <span class="badge-counter" id="anti-pattern-counter">3</span>
+        </button>
+
+        <!-- Telemetry Modal Trigger -->
+        <button class="btn-top" onclick="openTelemetryModal()" title="View runtime telemetry & browser status">
+          <span>📊 Telemetry</span>
+        </button>
+
+        <!-- Open in Browser Preview Trigger -->
+        <button class="btn-top" onclick="openCurrentInBrowser()" title="Open active web application in your desktop browser">
+          <span>🌐 Preview</span>
+        </button>
+
+        <!-- Theme Toggle Switch -->
+        <button class="btn-top" id="btn-theme-toggle" onclick="toggleTheme()" title="Switch Light/Dark Mode">
+          <span>🌙 Dark</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container" id="chat-container">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">⚡</div>
+        <h2 class="empty-title">Saltice Autonomous Engineering</h2>
+        <p class="empty-desc">Reinforcement-learning equipped agent. Provide instructions, give negative feedback to steer anti-patterns, and watch real-time tool execution.</p>
+        <div class="quick-chips">
+          <div class="chip" onclick="quickPrompt('Create a modern Glassy Dark Pomodoro Timer with start, pause, and alarm sound.')">⏱️ Glassy Pomodoro</div>
+          <div class="chip" onclick="quickPrompt('Build a clean HTML dino jumping canvas game with smooth physics and high scores.')">🎮 Dino Jump Game</div>
+          <div class="chip" onclick="quickPrompt('Audit the current workspace files, verify DOM health, and create an implementation plan.')">🔍 Audit Workspace</div>
+          <div class="chip" onclick="quickPrompt('Refactor code in active project using Andrej Karpathy simplicity rules.')">🛠️ Karpathy Simplicity</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Input Area -->
+    <div class="input-area">
+      <div class="input-box-wrapper">
+        <textarea id="chat-input" rows="1" placeholder="Type a task or instruction... (Shift+Enter for newline, Enter to send)"></textarea>
+        <button class="btn-send" id="btn-send" onclick="sendMessage()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Negative Feedback Dialog Modal -->
+  <div class="modal-overlay" id="feedback-modal">
+    <div class="modal-glass">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>⛔ Flag Negative Anti-Pattern</span>
+        </div>
+        <button class="btn-close-modal" onclick="closeFeedbackModal()">&times;</button>
+      </div>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
+        Saltice will record this negative constraint in persistent memory so it avoids repeating this mistake in future generations:
+      </p>
+
+      <div class="tag-grid" id="feedback-tag-grid">
+        <div class="tag-pill selected" onclick="selectFeedbackTag(this, 'Bland / Non-Glassy UI')">🎨 Bland / Non-Glassy UI</div>
+        <div class="tag-pill" onclick="selectFeedbackTag(this, 'Broken JavaScript / Script Error')">💥 Broken JavaScript / Script Error</div>
+        <div class="tag-pill" onclick="selectFeedbackTag(this, 'Placeholder / Truncated Code')">✂️ Placeholder / Truncated Code</div>
+        <div class="tag-pill" onclick="selectFeedbackTag(this, 'Duplicate / Wrong File')">📁 Duplicate / Wrong File</div>
+        <div class="tag-pill" onclick="selectFeedbackTag(this, 'Custom Negative Directive')">✏️ Custom Directive</div>
+      </div>
+
+      <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; display: block;">Specific Negative Instruction (Optional)</label>
+      <textarea class="modal-textarea" id="feedback-custom-note" placeholder="e.g. Do not use plain white buttons, make sure everything uses frosted glass and specular borders..."></textarea>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeFeedbackModal()">Cancel</button>
+        <button class="btn-primary" onclick="submitNegativeFeedback()">Enforce Negative Constraint</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Anti-Patterns Manager Modal -->
+  <div class="modal-overlay" id="anti-patterns-modal">
+    <div class="modal-glass" style="max-width: 620px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>🛡️ Active Anti-Patterns & Negative Constraints</span>
+        </div>
+        <button class="btn-close-modal" onclick="closeAntiPatternsModal()">&times;</button>
+      </div>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
+        These hard constraints are actively injected into the model prompt to prevent unwanted styles or bugs:
+      </p>
+
+      <div id="anti-patterns-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; margin-bottom: 16px;">
+        <!-- Loaded dynamically -->
+      </div>
+
+      <div style="border-top: 1px solid var(--border-subtle); padding-top: 12px; margin-bottom: 12px;">
+        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; display: block;">Add Custom Negative Constraint</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="new-anti-tag" placeholder="Tag name (e.g. No Bootstrap)" style="width: 140px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 7px 10px; color: var(--text-main); font-size: 0.8rem; outline: none;">
+          <input type="text" id="new-anti-desc" placeholder="Constraint directive for Saltice..." style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 7px 10px; color: var(--text-main); font-size: 0.8rem; outline: none;">
+          <button class="btn-primary" onclick="addCustomAntiPattern()" style="padding: 7px 12px; font-size: 0.8rem;">Add</button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeAntiPatternsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Telemetry Modal -->
+  <div class="modal-overlay" id="telemetry-modal">
+    <div class="modal-glass">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>📊 Telemetry & System Status</span>
+        </div>
+        <button class="btn-close-modal" onclick="closeTelemetryModal()">&times;</button>
+      </div>
+      
+      <div id="telemetry-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+        <!-- Telemetry metrics populated dynamically -->
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeTelemetryModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentSessionId = null;
+    let isExecuting = false;
+    let currentSessionHasMessages = false;
+    let livePollInterval = null;
+    let selectedFeedbackTag = "Bland / Non-Glassy UI";
+
+    // Initialize UI
+    document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      fetchWorkspace();
+      loadSessions();
+      fetchAntiPatternsCount();
+      setupInputHandlers();
+    });
+
+    // Theme Management
+    function initTheme() {
+      const saved = localStorage.getItem("saltice_theme");
+      if (saved === "light") {
+        document.body.classList.add("light-theme");
+        document.getElementById("btn-theme-toggle").innerHTML = "<span>☀️ Light</span>";
+      } else {
+        document.body.classList.remove("light-theme");
+        document.getElementById("btn-theme-toggle").innerHTML = "<span>🌙 Dark</span>";
+      }
+    }
+
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle("light-theme");
+      localStorage.setItem("saltice_theme", isLight ? "light" : "dark");
+      document.getElementById("btn-theme-toggle").innerHTML = isLight ? "<span>☀️ Light</span>" : "<span>🌙 Dark</span>";
+      showToast(isLight ? "Light Mode Active" : "Obsidian Dark Mode Active");
+    }
+
+    function setupInputHandlers() {
+      const input = document.getElementById("chat-input");
+      input.addEventListener("input", function() {
+        this.style.height = "auto";
+        this.style.height = Math.min(this.scrollHeight, 180) + "px";
+      });
+
+      input.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      document.getElementById("mode-select").addEventListener("change", (e) => {
+        const text = e.target.options[e.target.selectedIndex].text.split(" ")[1] || e.target.value;
+        document.getElementById("active-mode-badge").textContent = text;
+      });
+    }
+
+    async function fetchWorkspace() {
+      try {
+        const res = await fetch("/api/workspace");
+        const data = await res.json();
+        if (data.status === "ok") {
+          document.getElementById("ws-path").textContent = data.workspace;
+          document.getElementById("ws-path").title = data.workspace;
+          if (!currentSessionId && data.current_session_id) {
+            currentSessionId = data.current_session_id;
+            document.getElementById("session-id-badge").textContent = `ID: ${currentSessionId.split('_').slice(1).join('_')}`;
+          }
+        }
+      } catch (err) {
+        console.error("Workspace fetch failed:", err);
+      }
+    }
+
+    async function promptChangeWorkspace() {
+      const current = document.getElementById("ws-path").textContent;
+      const newPath = prompt("Enter target workspace directory path on your computer:", current);
+      if (newPath && newPath.trim() !== "" && newPath !== current) {
+        try {
+          const res = await fetch("/api/workspace/set", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ workspace: newPath.trim() })
+          });
+          const data = await res.json();
+          if (data.status === "ok") {
+            fetchWorkspace();
+            showToast("Workspace updated: " + data.workspace);
+          } else {
+            alert(data.message || "Failed to switch workspace directory");
+          }
+        } catch (e) {
+          console.error("Error setting workspace:", e);
+        }
+      }
+    }
+
+    async function loadSessions() {
+      try {
+        const res = await fetch("/api/sessions");
+        const data = await res.json();
+        if (data.status === "ok") {
+          renderSessionsList(data.sessions || []);
+        }
+      } catch (err) {
+        console.error("Failed to load sessions:", err);
+      }
+    }
+
+    function renderSessionsList(sessions) {
+      const container = document.getElementById("sessions-list");
+      document.getElementById("session-count").textContent = sessions.length;
+      container.innerHTML = "";
+
+      if (sessions.length === 0) {
+        container.innerHTML = `<div style="font-size:0.75rem; color:var(--text-dim); padding:10px;">No past sessions yet.</div>`;
+        return;
+      }
+
+      sessions.forEach(s => {
+        const item = document.createElement("div");
+        item.className = "session-item" + (s.session_id === currentSessionId ? " active" : "");
+        
+        const title = s.first_goal || "Interactive Session";
+        const turns = s.turns || 0;
+        const timeAgo = formatTime(s.last_active);
+        const wsSnippet = s.workspace ? s.workspace.split(/[\\/]/).pop() : "";
+
+        item.innerHTML = `
+          <div class="session-goal" title="${escapeHtml(title)}">${escapeHtml(title)}</div>
+          <div class="session-meta">
+            <span>${turns} turn${turns === 1 ? '' : 's'}${wsSnippet ? ' • ' + wsSnippet : ''}</span>
+            <span>${timeAgo}</span>
+          </div>
+          <button class="btn-delete-session" title="Delete Session" onclick="deleteSession(event, '${s.session_id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        `;
+
+        item.onclick = (e) => {
+          if (e.target.closest('.btn-delete-session')) return;
+          loadSpecificSession(s.session_id);
+        };
+
+        container.appendChild(item);
+      });
+    }
+
+    async function loadSpecificSession(sessionId) {
+      if (isExecuting) return;
+      try {
+        const res = await fetch(`/api/sessions/${sessionId}`);
+        const data = await res.json();
+        if (data.status === "ok") {
+          currentSessionId = sessionId;
+          document.getElementById("session-id-badge").textContent = `ID: ${currentSessionId.split('_').slice(1).join('_')}`;
+          
+          const title = data.session.metadata?.first_goal || "Past Session";
+          document.getElementById("chat-title").textContent = title.slice(0, 40);
+
+          renderTranscript(data.session.turns || []);
+          loadSessions();
+        }
+      } catch (err) {
+        console.error("Failed to load session details:", err);
+      }
+    }
+
+    async function createNewSession() {
+      if (isExecuting) return;
+
+      if (!currentSessionHasMessages && document.getElementById("empty-state")) {
+        document.getElementById("chat-input").focus();
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/sessions/new", { method: "POST" });
+        const data = await res.json();
+        if (data.status === "ok") {
+          currentSessionId = data.session_id;
+          currentSessionHasMessages = false;
+          document.getElementById("session-id-badge").textContent = `ID: ${currentSessionId.split('_').slice(1).join('_')}`;
+          document.getElementById("chat-title").textContent = "New Conversation";
+          
+          document.getElementById("chat-container").innerHTML = `
+            <div class="empty-state" id="empty-state">
+              <div class="empty-icon">⚡</div>
+              <h2 class="empty-title">Saltice Autonomous Engineering</h2>
+              <p class="empty-desc">Reinforcement-learning equipped agent. Provide instructions, give negative feedback to steer anti-patterns, and watch real-time tool execution.</p>
+              <div class="quick-chips">
+                <div class="chip" onclick="quickPrompt('Create a modern Glassy Dark Pomodoro Timer with start, pause, and alarm sound.')">⏱️ Glassy Pomodoro</div>
+                <div class="chip" onclick="quickPrompt('Build a clean HTML dino jumping canvas game with smooth physics and high scores.')">🎮 Dino Jump Game</div>
+                <div class="chip" onclick="quickPrompt('Audit the current workspace files, verify DOM health, and create an implementation plan.')">🔍 Audit Workspace</div>
+              </div>
+            </div>
+          `;
+          loadSessions();
+          document.getElementById("chat-input").focus();
+        }
+      } catch (err) {
+        console.error("Failed to create new session:", err);
+      }
+    }
+
+    async function deleteSession(event, sessionId) {
+      event.stopPropagation();
+      try {
+        await fetch("/api/sessions/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sessionId })
+        });
+        if (currentSessionId === sessionId) {
+          createNewSession();
+        } else {
+          loadSessions();
+        }
+      } catch (err) {
+        console.error("Failed to delete session:", err);
+      }
+    }
+
+    function renderTranscript(turns) {
+      const container = document.getElementById("chat-container");
+      container.innerHTML = "";
+
+      if (turns.length === 0) {
+        currentSessionHasMessages = false;
+        container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-dim);">Session has no messages yet.</div>`;
+        return;
+      }
+
+      currentSessionHasMessages = true;
+      turns.forEach(t => {
+        appendMessage("user", t.user_goal);
+        appendMessage("agent", t.summary, t.touched_files, t.target_file);
+      });
+
+      scrollChatToBottom();
+    }
+
+    function quickPrompt(text) {
+      document.getElementById("chat-input").value = text;
+      sendMessage();
+    }
+
+    // Live Execution Feed Management
+    function createLiveExecutionCard() {
+      const container = document.getElementById("chat-container");
+      const card = document.createElement("div");
+      card.className = "live-execution-card";
+      card.id = "live-execution-card";
+      card.innerHTML = `
+        <div class="live-header">
+          <div class="live-title">
+            <div class="pulse-dot"></div>
+            <span>Saltice Autonomous Execution</span>
+          </div>
+          <div class="live-badge" id="live-status-badge">Turn 1 • Reasoning</div>
+        </div>
+        <div class="live-steps-stream" id="live-steps-stream">
+          <div class="live-step-item thought">
+            <span class="live-step-icon">🧠</span>
+            <span class="live-step-text">Saltice is analyzing workspace context and planning actions...</span>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+      scrollChatToBottom();
+      return card;
+    }
+
+    function startLivePolling() {
+      let seenCount = 0;
+      livePollInterval = setInterval(async () => {
+        if (!isExecuting) {
+          clearInterval(livePollInterval);
+          return;
+        }
+        try {
+          const res = await fetch(`/api/live?session_id=${currentSessionId}`);
+          const data = await res.json();
+          if (data.status === "ok" && data.events && data.events.length > seenCount) {
+            const stream = document.getElementById("live-steps-stream");
+            const badge = document.getElementById("live-status-badge");
+            
+            for (let i = seenCount; i < data.events.length; i++) {
+              const ev = data.events[i];
+              appendLiveStep(stream, badge, ev);
+            }
+            seenCount = data.events.length;
+            scrollChatToBottom();
+          }
+        } catch (e) {
+          // ignore poll jitter
+        }
+      }, 350);
+    }
+
+    function appendLiveStep(stream, badge, ev) {
+      if (!stream) return;
+      const type = ev.type || "unknown";
+      const item = document.createElement("div");
+      item.className = `live-step-item ${type}`;
+
+      let icon = "⚡";
+      let text = "";
+
+      if (type === "turn_start") {
+        icon = "🔄";
+        text = `Turn ${ev.turn}: Initiating execution loop`;
+        if (badge) badge.textContent = `Turn ${ev.turn} • Active`;
+      } else if (type === "reasoning") {
+        icon = "🧠";
+        text = ev.status || "Reasoning and strategizing...";
+        if (badge) badge.textContent = `Turn ${ev.turn} • Reasoning`;
+      } else if (type === "thought") {
+        icon = "💡";
+        text = `Thought: ${ev.text}`;
+      } else if (type === "tool_start") {
+        icon = "⚙️";
+        text = `Tool Call: ${ev.action}(${formatToolArgs(ev.args)})`;
+        if (badge) badge.textContent = `Tool: ${ev.action}`;
+      } else if (type === "tool_result") {
+        icon = "📥";
+        text = `Result: ${ev.result ? ev.result.slice(0, 140) : 'Done'}`;
+      } else if (type === "browser_check") {
+        icon = "🌐";
+        text = `Browser DOM: ${ev.elements} elements verified (Glassy=${ev.glassy ? 'Yes' : 'No'})`;
+      } else if (type === "finish") {
+        icon = "✔";
+        text = `Finished: ${ev.summary ? ev.summary.slice(0, 100) : 'Done'}`;
+        if (badge) badge.textContent = "Complete";
+      } else {
+        text = JSON.stringify(ev);
+      }
+
+      item.innerHTML = `
+        <span class="live-step-icon">${icon}</span>
+        <span class="live-step-text">${escapeHtml(text)}</span>
+        <span class="live-step-time">${ev.timestamp || ''}</span>
+      `;
+
+      stream.appendChild(item);
+    }
+
+    function formatToolArgs(args) {
+      if (!args) return "";
+      if (typeof args === "string") return args.slice(0, 30);
+      const keys = Object.keys(args);
+      if (keys.includes("filepath")) return `file='${args.filepath}'`;
+      if (keys.includes("command")) return `$ '${args.command.slice(0, 35)}'`;
+      if (keys.includes("url")) return `url='${args.url}'`;
+      if (keys.includes("query")) return `q='${args.query}'`;
+      return keys.slice(0, 2).map(k => `${k}=...`).join(', ');
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("chat-input");
+      const message = input.value.trim();
+      if (!message || isExecuting) return;
+
+      const emptyState = document.getElementById("empty-state");
+      if (emptyState) emptyState.remove();
+
+      currentSessionHasMessages = true;
+
+      // Append user message
+      appendMessage("user", message);
+      input.value = "";
+      input.style.height = "auto";
+      scrollChatToBottom();
+
+      // UI execution state
+      isExecuting = true;
+      document.getElementById("btn-send").disabled = true;
+
+      // Spawn real-time live execution feed card
+      createLiveExecutionCard();
+      startLivePolling();
+
+      const mode = document.getElementById("mode-select").value;
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: message,
+            session_id: currentSessionId,
+            mode: mode
+          })
+        });
+
+        const data = await res.json();
+        
+        // Remove live execution card and replace with final response
+        const liveCard = document.getElementById("live-execution-card");
+        if (liveCard) liveCard.remove();
+
+        if (data.status === "ok") {
+          currentSessionId = data.session_id;
+          appendMessage("agent", data.summary, data.touched_files, data.target_file, data.events);
+          loadSessions();
+        } else {
+          appendMessage("agent", `⚠️ **Error**: ${data.message || 'Execution failed'}`);
+        }
+      } catch (err) {
+        const liveCard = document.getElementById("live-execution-card");
+        if (liveCard) liveCard.remove();
+        appendMessage("agent", `❌ **Network/Server Error**: ${err.message}. Ensure the Saltice UI server is running.`);
+      } finally {
+        isExecuting = false;
+        clearInterval(livePollInterval);
+        document.getElementById("btn-send").disabled = false;
+        scrollChatToBottom();
+      }
+    }
+
+    function appendMessage(role, text, touchedFiles, targetFile, executionEvents) {
+      const container = document.getElementById("chat-container");
+      const row = document.createElement("div");
+      row.className = `message-row ${role}`;
+
+      const bubble = document.createElement("div");
+      bubble.className = `bubble ${role}`;
+
+      if (role === "user") {
+        bubble.textContent = text;
+        row.appendChild(bubble);
+      } else {
+        // Render Execution Steps Accordion if events are present
+        if (executionEvents && executionEvents.length > 0) {
+          const accordion = document.createElement("div");
+          accordion.className = "steps-accordion";
+          accordion.innerHTML = `
+            <button class="steps-toggle-btn" onclick="toggleAccordion(this)">
+              <span>⚡ ${executionEvents.length} Autonomous Agent Step${executionEvents.length === 1 ? '' : 's'}</span>
+              <span>▼</span>
+            </button>
+            <div class="steps-content">
+              ${executionEvents.map(e => `
+                <div style="display:flex; justify-content:space-between; gap:6px; color:var(--text-muted);">
+                  <span><strong>${escapeHtml(e.type || 'step')}</strong>: ${escapeHtml(e.action || e.status || e.text || e.summary || '')}</span>
+                  <span style="font-family:'JetBrains Mono',monospace; font-size:0.65rem;">${e.timestamp || ''}</span>
+                </div>
+              `).join('')}
+            </div>
+          `;
+          bubble.appendChild(accordion);
+        }
+
+        // Render Markdown safely
+        const contentDiv = document.createElement("div");
+        if (window.marked) {
+          contentDiv.innerHTML = marked.parse(text || "");
+        } else {
+          contentDiv.textContent = text;
+        }
+        bubble.appendChild(contentDiv);
+
+        // Add Touched Files badge if files were modified
+        if (touchedFiles && touchedFiles.length > 0) {
+          const filesBadge = document.createElement("div");
+          filesBadge.className = "touched-banner";
+          filesBadge.innerHTML = `
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+            Files: ${touchedFiles.map(escapeHtml).join(', ')}
+          `;
+          bubble.appendChild(filesBadge);
+        }
+
+        row.appendChild(bubble);
+
+        // Append Reinforcement Learning Feedback Bar
+        const feedbackBar = document.createElement("div");
+        feedbackBar.className = "message-feedback-bar";
+        feedbackBar.innerHTML = `
+          <button class="feedback-btn thumbs-up" title="Mark as good generation" onclick="sendPositiveFeedback(this)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+            <span>Helpful</span>
+          </button>
+          <button class="feedback-btn thumbs-down" title="Flag anti-pattern / negative constraint" onclick="openNegativeFeedbackModal()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>
+            <span>Flag Anti-Pattern</span>
+          </button>
+          <button class="feedback-btn" title="Copy response text" onclick="copyBubbleText(this)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy</span>
+          </button>
+        `;
+        row.appendChild(feedbackBar);
+      }
+
+      container.appendChild(row);
+      scrollChatToBottom();
+    }
+
+    function toggleAccordion(btn) {
+      const content = btn.nextElementSibling;
+      const isHidden = content.style.display === "none" || !content.style.display;
+      content.style.display = isHidden ? "flex" : "none";
+      btn.querySelector("span:last-child").textContent = isHidden ? "▲" : "▼";
+    }
+
+    function scrollChatToBottom() {
+      const container = document.getElementById("chat-container");
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function copyBubbleText(btn) {
+      const bubble = btn.closest(".message-row").querySelector(".bubble");
+      if (bubble) {
+        navigator.clipboard.writeText(bubble.innerText);
+        showToast("Copied to clipboard!");
+      }
+    }
+
+    // Feedback & Reinforcement Mechanisms
+    async function sendPositiveFeedback(btn) {
+      btn.classList.add("active-pos");
+      showToast("Positive feedback recorded!");
+      try {
+        await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rating: "positive", session_id: currentSessionId })
+        });
+      } catch (e) {}
+    }
+
+    function openNegativeFeedbackModal() {
+      document.getElementById("feedback-modal").style.display = "flex";
+      document.getElementById("feedback-custom-note").focus();
+    }
+
+    function closeFeedbackModal() {
+      document.getElementById("feedback-modal").style.display = "none";
+    }
+
+    function selectFeedbackTag(elem, tag) {
+      document.querySelectorAll("#feedback-tag-grid .tag-pill").forEach(p => p.classList.remove("selected"));
+      elem.classList.add("selected");
+      selectedFeedbackTag = tag;
+    }
+
+    async function submitNegativeFeedback() {
+      const customNote = document.getElementById("feedback-custom-note").value.trim();
+      closeFeedbackModal();
+
+      try {
+        const res = await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rating: "negative",
+            session_id: currentSessionId,
+            tag: selectedFeedbackTag,
+            custom_note: customNote
+          })
+        });
+        const data = await res.json();
+        if (data.status === "ok") {
+          showToast(`Negative constraint saved: "${selectedFeedbackTag}"`);
+          fetchAntiPatternsCount();
+          document.getElementById("feedback-custom-note").value = "";
+        }
+      } catch (e) {
+        showToast("Failed to save feedback");
+      }
+    }
+
+    // Anti-Patterns Modal
+    async function fetchAntiPatternsCount() {
+      try {
+        const res = await fetch("/api/anti_patterns");
+        const data = await res.json();
+        if (data.status === "ok") {
+          document.getElementById("anti-pattern-counter").textContent = data.active_count || data.anti_patterns.length;
+        }
+      } catch (e) {}
+    }
+
+    async function openAntiPatternsModal() {
+      const modal = document.getElementById("anti-patterns-modal");
+      modal.style.display = "flex";
+      const list = document.getElementById("anti-patterns-list");
+      list.innerHTML = `<div style="color:var(--text-dim); font-size:0.8rem;">Loading active constraints...</div>`;
+
+      try {
+        const res = await fetch("/api/anti_patterns");
+        const data = await res.json();
+        if (data.status === "ok") {
+          list.innerHTML = "";
+          data.anti_patterns.forEach(p => {
+            const item = document.createElement("div");
+            item.style.cssText = "display:flex; align-items:center; justify-content:space-between; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:8px; padding:8px 12px;";
+            item.innerHTML = `
+              <div style="flex:1; padding-right:12px;">
+                <div style="font-weight:600; font-size:0.82rem; color:var(--text-main); margin-bottom:2px;">
+                  ⛔ ${escapeHtml(p.tag)}
+                  ${p.source === 'user_negative_feedback' ? '<span style="font-size:0.65rem; background:rgba(239,68,68,0.2); color:#ef4444; padding:1px 5px; border-radius:4px; margin-left:6px;">Learned</span>' : ''}
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(p.constraint)}</div>
+              </div>
+              <button onclick="deleteAntiPattern('${p.id}')" style="background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:1.1rem; padding:4px;">&times;</button>
+            `;
+            list.appendChild(item);
+          });
+        }
+      } catch (e) {
+        list.innerHTML = `<div style="color:var(--danger-glow); font-size:0.8rem;">Failed to load anti-patterns.</div>`;
+      }
+    }
+
+    function closeAntiPatternsModal() {
+      document.getElementById("anti-patterns-modal").style.display = "none";
+    }
+
+    async function addCustomAntiPattern() {
+      const tag = document.getElementById("new-anti-tag").value.trim();
+      const desc = document.getElementById("new-anti-desc").value.trim();
+      if (!tag || !desc) {
+        alert("Please provide both a tag and description for the constraint.");
+        return;
+      }
+      try {
+        await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rating: "negative",
+            tag: tag,
+            constraint: desc
+          })
+        });
+        document.getElementById("new-anti-tag").value = "";
+        document.getElementById("new-anti-desc").value = "";
+        openAntiPatternsModal();
+        fetchAntiPatternsCount();
+        showToast(`Added anti-pattern: ${tag}`);
+      } catch (e) {}
+    }
+
+    async function deleteAntiPattern(id) {
+      try {
+        await fetch("/api/anti_patterns/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: id })
+        });
+        openAntiPatternsModal();
+        fetchAntiPatternsCount();
+        showToast("Anti-pattern removed");
+      } catch (e) {}
+    }
+
+    // Telemetry Modal
+    async function openTelemetryModal() {
+      const modal = document.getElementById("telemetry-modal");
+      modal.style.display = "flex";
+      const content = document.getElementById("telemetry-content");
+      content.innerHTML = `<div style="grid-column: span 2; color:var(--text-dim);">Loading telemetry data...</div>`;
+
+      try {
+        const res = await fetch("/api/telemetry");
+        const data = await res.json();
+        if (data.status === "ok") {
+          const t = data.telemetry || {};
+          content.innerHTML = `
+            <div style="background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:10px; padding:12px;">
+              <div style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase;">Total Tasks Run</div>
+              <div style="font-size:1.4rem; font-weight:700; color:var(--text-main);">${t.total_tasks || 0}</div>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:10px; padding:12px;">
+              <div style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase;">Syntax Success Rate</div>
+              <div style="font-size:1.4rem; font-weight:700; color:var(--success-glow);">${t.syntax_success_rate || '100%'}</div>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:10px; padding:12px;">
+              <div style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase;">Average Duration</div>
+              <div style="font-size:1.4rem; font-weight:700; color:var(--text-main);">${t.avg_duration_seconds || 0}s</div>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:10px; padding:12px;">
+              <div style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase;">Detected Browser</div>
+              <div style="font-size:1.1rem; font-weight:600; color:var(--text-main); margin-top:4px;">🌐 ${data.browser || 'Chromium'}</div>
+            </div>
+            <div style="grid-column: span 2; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:10px; padding:12px;">
+              <div style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; margin-bottom:4px;">Active Negative Constraints</div>
+              <div style="font-size:0.85rem; color:var(--text-main);">🛡️ ${data.active_constraints_count || 0} anti-patterns enforced in prompt</div>
+            </div>
+          `;
+        }
+      } catch (e) {
+        content.innerHTML = `<div style="grid-column: span 2; color:var(--danger-glow);">Failed to load telemetry.</div>`;
+      }
+    }
+
+    function closeTelemetryModal() {
+      document.getElementById("telemetry-modal").style.display = "none";
+    }
+
+    // Open in Browser Action
+    function openCurrentInBrowser() {
+      // Open index.html or local test server in a new browser window
+      showToast("Opening workspace in browser...");
+      window.open("/index.html", "_blank");
+    }
+
+    // Toast Notification Helper
+    function showToast(message) {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      toast.className = "toast-item";
+      toast.innerHTML = `<span>⚡</span><span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateX(20px)";
+        toast.style.transition = "all 0.25s ease";
+        setTimeout(() => toast.remove(), 250);
+      }, 3000);
+    }
+
+    function formatTime(isoStr) {
+      if (!isoStr) return "";
+      try {
+        const d = new Date(isoStr);
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } catch {
+        return "";
+      }
+    }
+
+    function escapeHtml(str) {
+      return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+  </script>
+</body>
+</html>

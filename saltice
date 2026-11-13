@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+python "d:/USEME FOLDER/ANTIGRAVITY/SalticeAgent/main.py" "$@"

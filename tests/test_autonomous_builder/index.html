@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ORBITAL DYNAMICS - Aerospace Telemetry Lab</title>
+  <style>
+    :root {
+      --obsidian: #0a0a0f;
+      --cyan: #00ffff;
+      --amber: #ffbf00;
+      --glass: rgba(18, 18, 22, 0.75);
+      --border: rgba(56, 189, 248, 0.25);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--obsidian);
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .status-badges {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .badge {
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      background-color: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      font-size: 0.875rem;
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 60vh;
+      margin: 2rem 0;
+      border-radius: 1rem;
+      overflow: hidden;
+      background-color: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+    }
+
+    #orbitalCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .bento-card {
+      padding: 1.5rem;
+      border-radius: 1rem;
+      background-color: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .bento-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .dynamic-island-nav {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+    }
+
+    .dock-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 9999px;
+      background: rgba(15, 17, 23, 0.9);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(56, 189, 248, 0.2);
+    }
+
+    .dock-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 9999px;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .dock-btn:hover {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>ORBITAL DYNAMICS</h1>
+      <div class="status-badges">
+        <div class="badge">Telemetry Online</div>
+        <div class="badge">Gravity Well Active</div>
+        <div class="badge">Orbit Stable</div>
+      </div>
+    </header>
+
+    <div class="canvas-container">
+      <canvas id="orbitalCanvas"></canvas>
+    </div>
+
+    <div class="bento-grid">
+      <div class="bento-card">
+        <h2>Satellite Orbit</h2>
+        <p>Real-time orbital parameters visualization</p>
+      </div>
+      <div class="bento-card">
+        <h2>Velocity Vector</h2>
+        <p>Instantaneous velocity components</p>
+      </div>
+      <div class="bento-card">
+        <h2>Apogee/Perigee</h2>
+        <p>Extreme orbital points telemetry</p>
+      </div>
+      <div class="bento-card">
+        <h2>Gravity Well</h2>
+        <p>Central body gravitational influence</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+  <script>
+    // GSAP Animations
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Initialize GSAP animations
+    function initGSAPAnimations() {
+      // Animate header elements
+      gsap.from('header h1', {
+        opacity: 0,
+        y: -50,
+        duration: 1,
+        ease: 'power3.out'
+      });
+
+      // Animate status badges
+      gsap.from('.badge', {
+        opacity: 0,
+        y: 20,
+        stagger: 0.2,
+        duration: 0.8,
+        ease: 'back.out(1.7)'
+      });
+
+      // Animate bento cards
+      gsap.from('.bento-card', {
+        opacity: 0,
+        y: 50,
+        stagger: 0.1,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '.bento-grid',
+          start: 'top 80%',
+          end: 'bottom 20%',
+          toggleActions: 'play none none reverse'
+        }
+      });
+    }
+
+    // Interactive Canvas Physics
+    class OrbitalSystem {
+      constructor() {
+        this.canvas = document.getElementById('orbitalCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.centralBody = {
+          x: 600,
+          y: 250,
+          radius: 40,
+          mass: 10000
+        };
+        this.satellites = [];
+        this.mouse = { x: 0, y: 0 };
+        this.gravityWellActive = false;
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.resizeCanvas();
+        this.init();
+      }
+
+      resizeCanvas() {
+        const rect = this.canvas.parentElement ? this.canvas.parentElement.getBoundingClientRect() : { width: 1200, height: 450 };
+        this.canvas.width = Math.max(300, rect.width || this.canvas.offsetWidth || 1200);
+        this.canvas.height = Math.max(250, rect.height || this.canvas.offsetHeight || 450);
+        if (this.centralBody) {
+          this.centralBody.x = this.canvas.width / 2;
+          this.centralBody.y = this.canvas.height / 2;
+        }
+      }
+
+      init() {
+        window.addEventListener('resize', () => this.resizeCanvas());
+        this.canvas.addEventListener('mousemove', (e) => {
+          const rect = this.canvas.getBoundingClientRect();
+          this.mouse.x = e.clientX - rect.left;
+          this.mouse.y = e.clientY - rect.top;
+        });
+
+        // Create initial satellites
+        for (let i = 0; i < 5; i++) {
+          this.addSatellite();
+        }
+
+        // Start animation loop
+        this.animate();
+      }
+
+      addSatellite() {
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 150 + Math.random() * 100;
+        const speed = 0.01 + Math.random() * 0.02;
+
+        this.satellites.push({
+          x: this.centralBody.x + Math.cos(angle) * distance,
+          y: this.centralBody.y + Math.sin(angle) * distance,
+          vx: 0,
+          vy: 0,
+          prevX: this.centralBody.x + Math.cos(angle) * distance,
+          prevY: this.centralBody.y + Math.sin(angle) * distance,
+          radius: 5 + Math.random() * 5,
+          angle,
+          distance,
+          speed,
+          color: `hsl(${Math.random() * 60 + 180}, 100%, 70%)`
+        });
+      }
+
+      animate() {
+        requestAnimationFrame(() => this.animate());
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Draw central gravitational core
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.arc(this.centralBody.x, this.centralBody.y, this.centralBody.radius, 0, Math.PI * 2);
+        const grad = this.ctx.createRadialGradient(
+          this.centralBody.x, this.centralBody.y, 5,
+          this.centralBody.x, this.centralBody.y, this.centralBody.radius
+        );
+        grad.addColorStop(0, '#38bdf8');
+        grad.addColorStop(0.6, '#0284c7');
+        grad.addColorStop(1, 'rgba(2, 132, 199, 0)');
+        this.ctx.fillStyle = grad;
+        this.ctx.fill();
+
+        // Core glow ring
+        this.ctx.beginPath();
+        this.ctx.arc(this.centralBody.x, this.centralBody.y, this.centralBody.radius * 0.4, 0, Math.PI * 2);
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.shadowBlur = 25;
+        this.ctx.shadowColor = '#38bdf8';
+        this.ctx.fill();
+        this.ctx.restore();
+
+        // Draw orbital guide rings
+        [140, 200, 260].forEach(r => {
+          this.ctx.beginPath();
+          this.ctx.arc(this.centralBody.x, this.centralBody.y, r, 0, Math.PI * 2);
+          this.ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+          this.ctx.lineWidth = 1;
+          this.ctx.setLineDash([4, 6]);
+          this.ctx.stroke();
+          this.ctx.setLineDash([]);
+        });
+
+        // Update and draw satellites with stable orbital physics
+        this.satellites.forEach(satellite => {
+          satellite.angle += satellite.speed;
+
+          // Target orbital position
+          let targetX = this.centralBody.x + Math.cos(satellite.angle) * satellite.distance;
+          let targetY = this.centralBody.y + Math.sin(satellite.angle) * satellite.distance;
+
+          // Gravity well pull towards mouse if active
+          if (this.gravityWellActive && this.mouse.x && this.mouse.y) {
+            const mdx = this.mouse.x - satellite.x;
+            const mdy = this.mouse.y - satellite.y;
+            const mdist = Math.max(30, Math.hypot(mdx, mdy));
+            const pull = Math.min(50, 1200 / mdist);
+            targetX += (mdx / mdist) * pull;
+            targetY += (mdy / mdist) * pull;
+          }
+
+          // Smooth lag toward orbital target
+          satellite.vx = (targetX - satellite.x) * 0.15;
+          satellite.vy = (targetY - satellite.y) * 0.15;
+          satellite.x += satellite.vx;
+          satellite.y += satellite.vy;
+
+          // Store trail history
+          if (!satellite.trail) satellite.trail = [];
+          satellite.trail.push({ x: satellite.x, y: satellite.y });
+          if (satellite.trail.length > 18) satellite.trail.shift();
+
+          // Draw orbital contrail
+          if (satellite.trail.length > 1) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(satellite.trail[0].x, satellite.trail[0].y);
+            for (let i = 1; i < satellite.trail.length; i++) {
+              this.ctx.lineTo(satellite.trail[i].x, satellite.trail[i].y);
+            }
+            this.ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+            this.ctx.lineWidth = 1.5;
+            this.ctx.stroke();
+          }
+
+          // Draw satellite core and halo
+          this.ctx.beginPath();
+          this.ctx.arc(satellite.x, satellite.y, satellite.radius, 0, Math.PI * 2);
+          this.ctx.fillStyle = satellite.color;
+          this.ctx.shadowBlur = 12;
+          this.ctx.shadowColor = satellite.color;
+          this.ctx.fill();
+          this.ctx.shadowBlur = 0;
+        });
+      }
+
+      toggleGravityWell() {
+        this.gravityWellActive = !this.gravityWellActive;
+        this.playSoundEffect('gravity');
+      }
+
+      playSoundEffect(type) {
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+
+        if (type === 'gravity') {
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(440, this.audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.5);
+        } else if (type === 'click') {
+          oscillator.type = 'square';
+          oscillator.frequency.setValueAtTime(880, this.audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.1);
+        }
+
+        oscillator.start();
+        oscillator.stop(this.audioContext.currentTime + 0.5);
+      }
+    }
+
+    // Dynamic Island Floating Control Dock
+    const NAV_ITEMS = [
+      { icon: '📡', label: 'Telemetry', id: 'telemetry' },
+      { icon: '🔍', label: 'Orbit Zoom', id: 'zoom' },
+      { icon: '🪐', label: 'Gravity Well', id: 'gravity' },
+      { icon: '🎵', label: 'Sound Synth', id: 'sound' }
+    ];
+
+    // Create Dynamic Island Nav
+    function createDynamicIslandNav() {
+      const nav = document.createElement('nav');
+      nav.className = 'dynamic-island-nav';
+
+      const dock = document.createElement('div');
+      dock.className = 'dock-pill';
+
+      NAV_ITEMS.forEach(item => {
+        const button = document.createElement('button');
+        button.className = 'dock-btn';
+        button.innerHTML = `<span>${item.icon}</span> <span>${item.label}</span>`;
+        button.onclick = () => handleNavClick(item.id);
+        dock.appendChild(button);
+      });
+
+      nav.appendChild(dock);
+      document.body.appendChild(nav);
+    }
+
+    // Handle nav clicks
+    function handleNavClick(id) {
+      console.log(`Nav clicked: ${id}`);
+      orbitalSystem.playSoundEffect('click');
+
+      if (id === 'gravity') {
+        orbitalSystem.toggleGravityWell();
+      }
+    }
+
+    // Decrypted Text Effect
+    function createDecryptedText(element, text) {
+      let iteration = 0;
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+
+      const interval = setInterval(() => {
+        element.textContent = text
+          .split('')
+          .map((char, index) => {
+            if (index < iteration) return text[index];
+            if (char === ' ') return ' ';
+            return characters[Math.floor(Math.random() * characters.length)];
+          })
+          .join('');
+
+        if (iteration >= text.length) {
+          clearInterval(interval);
+        }
+        iteration += 1/3;
+      }, 45);
+    }
+
+    // Initialize everything
+    let orbitalSystem;
+    function startApp() {
+      createDynamicIslandNav();
+      initGSAPAnimations();
+      orbitalSystem = new OrbitalSystem();
+
+      // Apply decrypted text to headers
+      const headers = document.querySelectorAll('h1, h2');
+      headers.forEach(header => {
+        const originalText = header.textContent;
+        header.textContent = '';
+        createDecryptedText(header, originalText);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startApp);
+    } else {
+      startApp();
+    }
+  </script>
+</body>
+</html>

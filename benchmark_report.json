@@ -1,0 +1,108 @@
+{
+  "timestamp": "2026-09-16 14:02:33",
+  "total_tasks": 5,
+  "total_std_tokens": 1087,
+  "total_caveman_tokens": 1145,
+  "total_tokens_saved": -58,
+  "avg_token_reduction_pct": -5.34,
+  "total_standard_time_sec": 5.39,
+  "total_caveman_time_sec": 8.31,
+  "speedup_factor": 0.65,
+  "details": [
+    {
+      "iteration": 1,
+      "task": "Factorial with Memoization",
+      "standard": {
+        "tokens": 190,
+        "time": 0.96,
+        "speed": 199.4,
+        "model": "qwen/qwen3.8-27b",
+        "valid": true
+      },
+      "caveman": {
+        "tokens": 319,
+        "time": 1.23,
+        "speed": 260.5,
+        "model": "qwen/qwen3.8-27b",
+        "valid": true
+      },
+      "savings_pct": -67.9
+    },
+    {
+      "iteration": 2,
+      "task": "Binary Search Algorithm",
+      "standard": {
+        "tokens": 102,
+        "time": 0.66,
+        "speed": 153.8,
+        "model": "qwen/qwen3.8-27b",
+        "valid": true
+      },
+      "caveman": {
+        "tokens": 117,
+        "time": 0.73,
+        "speed": 160.8,
+        "model": "qwen/qwen3.8-27b",
+        "valid": true
+      },
+      "savings_pct": -14.7
+    },
+    {
+      "iteration": 3,
+      "task": "Palindrome Permutation",
+      "standard": {
+        "tokens": 126,
+        "time": 0.68,
+        "speed": 186.8,
+        "model": "qwen/qwen3.8-27b",
+        "valid": true
+      },
+      "caveman": {
+        "tokens": 61,
+        "time": 0.81,
+        "speed": 75.8,
+        "model": "qwen/qwen3.8-27b",
+        "valid": true
+      },
+      "savings_pct": 51.6
+    },
+    {
+      "iteration": 4,
+      "task": "In-Place QuickSort",
+      "standard": {
+        "tokens": 195,
+        "time": 1.69,
+        "speed": 115.1,
+        "model": "qwen/qwen3.8-27b",
+        "valid": true
+      },
+      "caveman": {
+        "tokens": 190,
+        "time": 0.92,
+        "speed": 206.6,
+        "model": "qwen/qwen3.8-27b",
+        "valid": true
+      },
+      "savings_pct": 2.6
+    },
+    {
+      "iteration": 5,
+      "task": "LRU Cache Data Structure",
+      "standard": {
+        "tokens": 474,
+        "time": 1.4,
+        "speed": 338.2,
+        "model": "qwen/qwen3.8-27b",
+        "valid": true
+      },
+      "caveman": {
+        "tokens": 458,
+        "time": 4.62,
+        "speed": 99.1,
+        "model": "openai/gpt-oss-20b",
+        "valid": true
+      },
+      "savings_pct": 3.4
+    }
+  ]
+}

@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saltice Autonomous Coding Agent — System Architecture & Capabilities Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07090e;
+      --card-bg: rgba(18, 24, 38, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-border-glow: rgba(56, 189, 248, 0.25);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent-cyan: #38bdf8;
+      --accent-violet: #a855f7;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --code-bg: #0a0e17;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 80px;
+    }
+
+    /* Ambient Background Glow */
+    .ambient-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 450px;
+      background: radial-gradient(circle at 50% -20%, rgba(56, 189, 248, 0.15), rgba(168, 85, 247, 0.12), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Navigation Bar */
+    header {
+      padding: 32px 0 24px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 36px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284c7, #7c3aed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 22px;
+      color: #ffffff;
+      box-shadow: 0 0 24px rgba(56, 189, 248, 0.4);
+    }
+
+    .brand-title h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-title p {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .badge-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      border: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .badge-cyan { color: var(--accent-cyan); border-color: rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.08); }
+    .badge-emerald { color: var(--accent-emerald); border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.08); }
+    .badge-violet { color: var(--accent-violet); border-color: rgba(168, 85, 247, 0.3); background: rgba(168, 85, 247, 0.08); }
+    .badge-amber { color: var(--accent-amber); border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.08); }
+
+    /* Sticky Nav Menu */
+    .nav-pills {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 16px 0 8px;
+      scrollbar-width: none;
+    }
+    .nav-pills::-webkit-scrollbar { display: none; }
+
+    .nav-pill {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .nav-pill:hover, .nav-pill.active {
+      color: #ffffff;
+      background: rgba(56, 189, 248, 0.12);
+      border-color: var(--accent-cyan);
+    }
+
+    /* Section Styles */
+    section {
+      margin-bottom: 48px;
+      scroll-margin-top: 24px;
+    }
+
+    .section-header {
+      margin-bottom: 24px;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .section-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+    }
+
+    .section-header .tagline {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Cards & Grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: var(--card-border-glow);
+      transform: translateY(-2px);
+    }
+
+    .card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card p {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* Stat Cards */
+    .stat-card {
+      padding: 20px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+    }
+
+    .stat-val {
+      font-size: 32px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: #ffffff;
+      margin-bottom: 4px;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    /* Diagram Block */
+    .diagram-container {
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+      overflow-x: auto;
+    }
+
+    .flowchart {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 800px;
+    }
+
+    .flow-node {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      padding: 14px 18px;
+      border-radius: 10px;
+      text-align: center;
+      flex: 1;
+    }
+
+    .flow-node.active {
+      border-color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .flow-node strong {
+      display: block;
+      font-size: 13px;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .flow-node span {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    /* Tables */
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      color: #ffffff;
+      font-weight: 600;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--card-border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    td {
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-main);
+    }
+
+    .code-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 2px 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 4px;
+      color: var(--accent-cyan);
+    }
+
+    /* Code Block */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #e2e8f0;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+
+    /* Print Optimization */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+      .ambient-glow, .nav-pills { display: none !important; }
+      .card {
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        page-break-inside: avoid;
+      }
+      .card h3, .section-header h2 { color: #0f172a !important; }
+      .card p, td { color: #334155 !important; }
+      th { background: #f1f5f9 !important; color: #0f172a !important; }
+      pre, .diagram-container {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #0f172a !important;
+      }
+      .code-tag {
+        background: #e2e8f0 !important;
+        color: #0284c7 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="header-top">
+        <div class="brand">
+          <div class="brand-icon">⚡</div>
+          <div class="brand-title">
+            <h1>Saltice Autonomous Agent Architecture</h1>
+            <p>Antigravity Autonomous Core • Production Engineering System Report</p>
+          </div>
+        </div>
+        <div class="badge-bar">
+          <span class="badge badge-emerald">● SYSTEM ONLINE</span>
+          <span class="badge badge-cyan">889 SKILLS</span>
+          <span class="badge badge-violet">4,234 MCP SERVERS</span>
+          <span class="badge badge-amber">89.7% CONTEXT COMPRESSION</span>
+        </div>
+      </div>
+
+      <!-- Navigation Bar -->
+      <nav class="nav-pills">
+        <a href="#summary" class="nav-pill active">Executive Summary</a>
+        <a href="#pillars" class="nav-pill">Karpathy & ECC Pillars</a>
+        <a href="#token-engine" class="nav-pill">Context & Loop Engineering</a>
+        <a href="#skills" class="nav-pill">889 Skills Ecosystem</a>
+        <a href="#subagents" class="nav-pill">Subagent Swarm</a>
+        <a href="#mcp" class="nav-pill">MCP Registry & DevTools</a>
+        <a href="#tools" class="nav-pill">Toolbelt Reference</a>
+        <a href="#cli" class="nav-pill">Commands & Usage</a>
+      </nav>
+    </header>
+
+    <!-- Key Metrics Dashboard -->
+    <section>
+      <div class="grid-4">
+        <div class="card stat-card">
+          <div class="stat-val" style="color: var(--accent-cyan);">889</div>
+          <div class="stat-label">Specialized Skills</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-val" style="color: var(--accent-violet);">4,234</div>
+          <div class="stat-label">Curated MCP Servers</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-val" style="color: var(--accent-emerald);">89.7%</div>
+          <div class="stat-label">Context Reduction Rate</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-val" style="color: var(--accent-amber);">10</div>
+          <div class="stat-label">ECC Subagent Personas</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 1: Executive Summary -->
+    <section id="summary">
+      <div class="section-header">
+        <h2>1. Executive Summary & Mission</h2>
+        <span class="tagline">[Core Engine: multi_agent_cli / engine.py]</span>
+      </div>
+      <div class="card">
+        <p><strong>Saltice</strong> is a high-performance, autonomous pair programming agent engineered to bridge the gap between human intent and production software. Built on the <code>SalticeAntigravityEngine</code>, it provides resilient dual-mode response parsing (native JSON tool calling with automatic Markdown recovery), progressive skill discovery, multi-turn token pruning, and subagent delegation.</p>
+        <p style="margin-top: 12px;">Unlike fragile wrapper agents that stall in infinite syntax error loops or blow out 64k token windows on verbose file writes, Saltice embeds <strong>Microsoft Loop & Context Engineering</strong>, <strong>Headroom Content-Centric Representation (CCR)</strong>, and <strong>Chrome DevTools MCP</strong> directly into its core decision cycle.</p>
+      </div>
+    </section>
+
+    <!-- Section 2: Guiding Engineering Pillars -->
+    <section id="pillars">
+      <div class="section-header">
+        <h2>2. Engineering Operating System & Karpathy's 4 Pillars</h2>
+        <span class="tagline">[Standards: AGENTS.md & ECC Flow]</span>
+      </div>
+      <div class="diagram-container">
+        <div class="flowchart">
+          <div class="flow-node active"><strong>PLAN</strong><span>implementation_plan.md</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><strong>TEST</strong><span>TDD Unit Tests</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><strong>IMPLEMENT</strong><span>Surgical Edits</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><strong>REVIEW</strong><span>Anti-Regression</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><strong>VERIFY</strong><span>Non-blocking Build</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><strong>REMEMBER</strong><span>Persistent Memory</span></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>🧠 Andrej Karpathy's 4 Golden Principles</h3>
+          <ul style="padding-left: 20px; color: var(--text-muted); font-size: 13.5px; line-height: 1.7;">
+            <li><strong>Think Before Coding:</strong> Explicitly surface assumptions, constraints, and tradeoffs before writing code. Clarify ambiguity.</li>
+            <li><strong>Simplicity First:</strong> Minimum code that solves the problem. No speculative configurability or single-use abstractions.</li>
+            <li><strong>Surgical Changes:</strong> Touch only what you must. Use <code>replace_file_content</code> rather than rewriting entire files. Zero orphan files.</li>
+            <li><strong>Goal-Driven Execution:</strong> Loop through automated build checks and tests until verified complete.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🛡️ Strict Safety Guardrails</h3>
+          <ul style="padding-left: 20px; color: var(--text-muted); font-size: 13.5px; line-height: 1.7;">
+            <li><strong>Zero White-Screen Policy:</strong> No stub comments (<code>/* TODO */</code>). Every component is 100% complete and functionally closed.</li>
+            <li><strong>Dev Server Lockout:</strong> Hard pre-tool hook blocks blocking servers (<code>npx vite</code>, <code>npm run dev</code>) from freezing the agent loop.</li>
+            <li><strong>Living Documentation Triple-Pack:</strong> Requires <code>implementation_plan.md</code>, <code>walkthrough.md</code>, and <code>README.md</code>.</li>
+            <li><strong>Rate Limiting & Exponential Jitter:</strong> Automatic retry on API 429/503 limits with sliding-window RPM/TPM tracking.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Context & Loop Engineering -->
+    <section id="token-engine">
+      <div class="section-header">
+        <h2>3. Token Optimization & Loop Engineering</h2>
+        <span class="tagline">[Microsoft Lesson 12 + Cobus Greyling + Headroom CCR]</span>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <h3>📉 89.7% Context Scrubbing</h3>
+          <p>Multi-turn conversations retain recent turn memory verbatim, while prior turns have multi-thousand character disk write outputs converted into lightweight receipts: <span class="code-tag">[Content written to disk: App.tsx (4.2kb), syntax verified]</span>. Context size dropped from 6,476 chars to 668 chars in tests.</p>
+        </div>
+        <div class="card">
+          <h3>⚡ Loop Stall Circuit Breaker</h3>
+          <p>Tracks normalized observation signatures. If an identical error is encountered 2 turns consecutively, injects a reflection warning. At turn 3 or 4 of repeated failure, halts execution and outputs a root-cause diagnosis, preventing token burn.</p>
+        </div>
+        <div class="card">
+          <h3>📦 Headroom CCR & Distillation</h3>
+          <p>Tool outputs exceeding 3,000 chars are saved to <span class="code-tag">.saltice/tool_logs/</span>. The agent receives a 1,200-char distillation (head + tail + fatal error lines) with a retrieval receipt. <span class="code-tag">SmartCrusher</span> structurally compresses JSON by >95%.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: 889 Skills Ecosystem -->
+    <section id="skills">
+      <div class="section-header">
+        <h2>4. The 889 Specialized Skills Ecosystem</h2>
+        <span class="tagline">[Progressive Disclosure • Zero Prompt Bloat]</span>
+      </div>
+      <div class="card" style="margin-bottom: 20px;">
+        <p>Saltice features an indexed catalog of <strong>889 specialized skills</strong> discovered across 8 distinct tiers. Only skill names and trigger phrases reside in prompt memory; complete multi-page runbooks are dynamically injected when the user's intent matches or when invoked via <span class="code-tag">/&lt;skill-name&gt;</span>.</p>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Category Tier</th>
+              <th>Source Origin</th>
+              <th>Key Skills Included</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="code-tag">Chrome DevTools MCP</span></td>
+              <td><code>.repo_cache/chrome-devtools-mcp</code></td>
+              <td>chrome-devtools, chrome-devtools-cli, cookie-debugging, a11y-debugging, debug-optimize-lcp, memory-leak-debugging, troubleshooting</td>
+            </tr>
+            <tr>
+              <td><span class="code-tag">Karpathy Guidelines</span></td>
+              <td><code>.repo_cache/andrej-karpathy-skills</code></td>
+              <td>karpathy-guidelines, simplicity-first, surgical-edits, think-before-coding, goal-driven-execution</td>
+            </tr>
+            <tr>
+              <td><span class="code-tag">ECC Engineering</span></td>
+              <td><code>.repo_cache/ECC</code></td>
+              <td>tdd-workflow, anti-regression, modular-decomposition, architectural-review, continuous-learning</td>
+            </tr>
+            <tr>
+              <td><span class="code-tag">Claude Code Skills</span></td>
+              <td><code>.repo_cache/claude-skills</code></td>
+              <td>fullstack-dev, git-workflow, code-refactor, api-scaffolding, security-auditor</td>
+            </tr>
+            <tr>
+              <td><span class="code-tag">Academic Research</span></td>
+              <td><code>.repo_cache/academic-research-skills</code></td>
+              <td>academic-paper, literature-review, citation-auditor, statistical-methodology</td>
+            </tr>
+            <tr>
+              <td><span class="code-tag">Core Saltice & System</span></td>
+              <td><code>.agents/skills</code>, <code>plugins/</code></td>
+              <td>glassy-ui, autonomous-tester, bigquery-sql, cloudflare-platform, firebase-firestore</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 5: Asynchronous Subagent Swarm -->
+    <section id="subagents">
+      <div class="section-header">
+        <h2>5. Asynchronous Subagent Swarm (10 Personas)</h2>
+        <span class="tagline">[subagents.py • Parallel Thread Execution]</span>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>🤖 10 ECC Specialized Roles</h3>
+          <ul style="padding-left: 18px; color: var(--text-muted); font-size: 13px; line-height: 1.8;">
+            <li><span class="code-tag">planner</span>: Decomposes complex goals into granular, testable steps.</li>
+            <li><span class="code-tag">architect</span>: System design, high cohesion, low coupling boundaries.</li>
+            <li><span class="code-tag">tdd-guide</span>: Defines tests first (unit/integration) with strict coverage.</li>
+            <li><span class="code-tag">code-reviewer</span>: Audits logic, edge cases, readability, performance.</li>
+            <li><span class="code-tag">security-reviewer</span>: OWASP Top 10, secret leak, input sanitization auditor.</li>
+            <li><span class="code-tag">build-error-resolver</span>: Quickly fixes compilation, type, and lint failures.</li>
+            <li><span class="code-tag">doc-updater</span>: Synchronizes implementation plans, walkthroughs, READMEs.</li>
+            <li><span class="code-tag">academic-researcher</span>: Literature synthesis, citation verification.</li>
+            <li><span class="code-tag">karpathy-auditor</span>: Enforces simplicity, kills speculative complexity.</li>
+            <li><span class="code-tag">browser-agent</span>: Headless Chrome DevTools DOM, console, and a11y testing.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>⚡ Non-Blocking Swarm Workflow</h3>
+          <p>Subagents run in daemonized background threads, allowing the primary agent or user to continue planning without freezing the shell:</p>
+          <pre><code># Main agent spawns worker:
+task_id = spawn_subagent(
+    role="browser-agent",
+    prompt="Inspect http://localhost:3000 for console errors"
+)
+
+# Non-blocking poll or wait:
+status = check_subagent_status(task_id)
+result = wait_for_subagent(task_id, timeout_sec=60)</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 6: Curated MCP & Chrome DevTools -->
+    <section id="mcp">
+      <div class="section-header">
+        <h2>6. Curated MCP Registry & Chrome DevTools MCP</h2>
+        <span class="tagline">[mcp_catalog.py • 4,234 Curated Servers]</span>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>🔌 4,234 Curated MCP Servers</h3>
+          <p>Integrated from <code>awesome-mcp-servers</code> across 24 categories (Database, Cloud, AI, Browser, DevTools, GitHub, etc.). Kept on disk with zero prompt token cost; queried on demand:</p>
+          <pre><code># Search directly from terminal or tool:
+search_mcp_servers("postgres")
+/mcp browser
+/mcp github</code></pre>
+        </div>
+        <div class="card">
+          <h3>🌐 Chrome DevTools MCP & Browser Tools</h3>
+          <p>Official Google Chrome DevTools MCP integration running Puppeteer & CDP in headless mode:</p>
+          <ul style="padding-left: 18px; color: var(--text-muted); font-size: 13px; line-height: 1.8; margin-top: 10px;">
+            <li><span class="code-tag">inspect_url_with_browser</span>: One-step DOM, console error, and screenshot capture.</li>
+            <li><span class="code-tag">run_chrome_devtools</span>: Execute CDP actions (click, fill, evaluate_script, lighthouse_audit).</li>
+            <li><span class="code-tag">/browser &lt;url&gt;</span>: Instant terminal inspection command.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 7: 25 Production Tools -->
+    <section id="tools">
+      <div class="section-header">
+        <h2>7. Production Toolbelt Reference (25 Tools)</h2>
+        <span class="tagline">[tools.py & engine.py]</span>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Tool Name</th>
+              <th>Category</th>
+              <th>Description & Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="code-tag">run_command</span></td><td>Terminal</td><td>Executes shell commands with non-blocking dev server guardrails.</td></tr>
+            <tr><td><span class="code-tag">write_file</span></td><td>Filesystem</td><td>Creates or overwrites files with automated parent directory creation.</td></tr>
+            <tr><td><span class="code-tag">replace_file_content</span></td><td>Filesystem</td><td>Surgical contiguous text block replacement (Karpathy principle).</td></tr>
+            <tr><td><span class="code-tag">view_file_slice</span></td><td>Filesystem</td><td>Inspects specific line ranges of any file without loading full content.</td></tr>
+            <tr><td><span class="code-tag">search_web</span></td><td>Research</td><td>Multi-source free web search (DuckDuckGo + Wikipedia + PyPI).</td></tr>
+            <tr><td><span class="code-tag">fetch_webpage</span></td><td>Research</td><td>Extracts clean markdown text from any web URL.</td></tr>
+            <tr><td><span class="code-tag">spawn_subagent</span></td><td>Multi-Agent</td><td>Spawns independent worker in background thread.</td></tr>
+            <tr><td><span class="code-tag">check_subagent_status</span></td><td>Multi-Agent</td><td>Polls progress or completed result of background subagent.</td></tr>
+            <tr><td><span class="code-tag">wait_for_subagent</span></td><td>Multi-Agent</td><td>Blocks until background subagent completes.</td></tr>
+            <tr><td><span class="code-tag">list_subagents</span></td><td>Multi-Agent</td><td>Lists all active and completed background tasks.</td></tr>
+            <tr><td><span class="code-tag">record_memory</span></td><td>Memory</td><td>Persists important architectural decisions across turns.</td></tr>
+            <tr><td><span class="code-tag">read_memory</span></td><td>Memory</td><td>Reads persistent session memories for active workspace.</td></tr>
+            <tr><td><span class="code-tag">retrieve_cached_content</span></td><td>Context / CCR</td><td>Reads slice of offloaded tool logs from disk without blowing tokens.</td></tr>
+            <tr><td><span class="code-tag">search_mcp_servers</span></td><td>MCP Registry</td><td>Searches 4,234 curated MCP servers by keyword or category.</td></tr>
+            <tr><td><span class="code-tag">extract_media_info</span></td><td>Media</td><td>Extracts metadata, chapters, and subtitles via yt-dlp.</td></tr>
+            <tr><td><span class="code-tag">run_chrome_devtools</span></td><td>Browser</td><td>Executes Chrome DevTools MCP tools in headless Chrome.</td></tr>
+            <tr><td><span class="code-tag">inspect_url_with_browser</span></td><td>Browser</td><td>Navigates, checks console errors, takes snapshot and screenshot.</td></tr>
+            <tr><td><span class="code-tag">cloudflare_url_scan</span></td><td>Cloudflare</td><td>Scans live web pages for security, DOM, and network health.</td></tr>
+            <tr><td><span class="code-tag">cloudflare_manage_queue</span></td><td>Cloudflare</td><td>Manages Cloudflare Queues directly from the CLI.</td></tr>
+            <tr><td><span class="code-tag">cloudflare_manage_container</span></td><td>Cloudflare</td><td>Manages Cloudflare container workloads.</td></tr>
+            <tr><td><span class="code-tag">create_plan</span></td><td>Artifacts</td><td>Generates structured implementation_plan.md design document.</td></tr>
+            <tr><td><span class="code-tag">create_walkthrough</span></td><td>Artifacts</td><td>Generates comprehensive walkthrough.md validation document.</td></tr>
+            <tr><td><span class="code-tag">list_directory</span></td><td>Filesystem</td><td>Lists files and subdirectories with size metrics.</td></tr>
+            <tr><td><span class="code-tag">deploy_to_pages</span></td><td>Cloudflare</td><td>Instantly deploys web projects to live *.pages.dev URLs.</td></tr>
+            <tr><td><span class="code-tag">finish</span></td><td>Workflow</td><td>Concludes task ONLY when verified working and tested.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 8: CLI Commands & Operations -->
+    <section id="cli">
+      <div class="section-header">
+        <h2>8. Interactive Terminal Slash Commands</h2>
+        <span class="tagline">[main.py]</span>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>⚡ Developer Slash Commands</h3>
+          <ul style="padding-left: 18px; color: var(--text-muted); font-size: 13px; line-height: 1.8;">
+            <li><span class="code-tag">/mode [builder|swarm|council]</span>: Select operating flow.</li>
+            <li><span class="code-tag">/browser &lt;url&gt;</span>: Inspect live URL or local HTML in headless Chrome.</li>
+            <li><span class="code-tag">/mcp &lt;query&gt;</span>: Search 4,234 curated MCP servers.</li>
+            <li><span class="code-tag">/compact [instructions]</span>: Compress active context history into executive memory.</li>
+            <li><span class="code-tag">/files</span>: View active session manifest of all modified files.</li>
+            <li><span class="code-tag">/skills [filter]</span>: Display interactive skills table.</li>
+            <li><span class="code-tag">/tokens</span>: Open live TPM/RPM rate limit and balance dashboard.</li>
+            <li><span class="code-tag">/deploy &lt;file&gt;</span>: Deploy HTML/web apps to Cloudflare Pages.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🚀 Quickstart CLI Launch</h3>
+          <pre><code># Launch interactive Saltice terminal:
+cd "multi_agent_cli"
+python main.py
+
+# Launch in builder mode with Caveman Lite:
+python main.py --mode builder --caveman lite
+
+# Run single-shot autonomous goal:
+python main.py --goal "Build a cyber weather dashboard with glassy UI"</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--card-border); text-align: center; color: var(--text-muted); font-size: 12px; font-family: 'JetBrains Mono', monospace;">
+      Saltice Autonomous Engineering System • Antigravity Engine Core • All 889 Skills & 4,234 MCP Servers Active
+    </footer>
+  </div>
+</body>
+</html>

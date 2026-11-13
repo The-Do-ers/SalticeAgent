@@ -1,0 +1,21 @@
+python-dotenv==1.2.3
+requests==2.34.2
+rich==15.0.0
+openai==3.14.1
+beautifulsoup4==4.15.0
+lxml==6.1.3
+ddgs==9.16.0
+# LangChain + Vector Intelligence Layer (added 2026-09-24)
+langchain>=1.4.2
+langchain-community>=0.4.2
+langchain-google-genai>=4.4.0
+langchain-core>=1.6.3
+langgraph>=1.2.12
+faiss-cpu>=1.15.1
+
+# Image Agent & Visual Studio Layer
+pillow>=10.4.0
+svglib>=2.3.2
+reportlab>=5.0.0
+gradio_client>=2.7.0
+google-genai>=0.1.0

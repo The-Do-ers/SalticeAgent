@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AETHER LABS — Avant-Garde Digital Design & Kinetic Motion Studio</title>
+  
+  <!-- Typography: Syne (Editorial Display) & Space Grotesk (Tech Monospace) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@500;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Core Motion Engines: GSAP 3.12.5 + ScrollTrigger + Lenis 1.1.18 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+
+  <style>
+    /* ==========================================================================
+       RESET & ROOT VARIABLES (Awards-Grade Obsidian & Electric Cyan Palette)
+       ========================================================================== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-base: #070709;
+      --bg-surface: #0e0e13;
+      --bg-card: #13131a;
+      --text-primary: #f5f5f7;
+      --text-muted: #8e8e9f;
+      --accent-cyan: #00f0ff;
+      --accent-cyan-glow: rgba(0, 240, 255, 0.35);
+      --accent-silver: #d1d5db;
+      --accent-violet: #8b5cf6;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(0, 240, 255, 0.4);
+      --font-display: 'Syne', sans-serif;
+      --font-tech: 'Space Grotesk', monospace;
+      --font-body: 'Inter', sans-serif;
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-full: 9999px;
+    }
+
+    html.lenis, html.lenis body {
+      height: auto;
+    }
+
+    .lenis.lenis-smooth {
+      scroll-behavior: auto !important;
+    }
+
+    .lenis.lenis-smooth [data-lenis-prevent] {
+      overscroll-behavior: contain;
+    }
+
+    .lenis.lenis-stopped {
+      overflow: hidden;
+    }
+
+    .lenis.lenis-smooth iframe {
+      pointer-events: none;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      selection-background-color: var(--accent-cyan);
+      selection-color: var(--bg-base);
+    }
+
+    ::selection {
+      background: var(--accent-cyan);
+      color: var(--bg-base);
+    }
+
+    /* Film Grain Noise Overlay (Niccolo Miranda Style) */
+    .film-grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.045;
+      mix-blend-mode: overlay;
+    }
+
+    /* Background Interactive Dot Grid Canvas */
+    #canvas-dot-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Main Content Wrapper */
+    main {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+    }
+
+    /* Container */
+    .container {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* ==========================================================================
+       HEADER & NAV BRANDING
+       ========================================================================== */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 1.75rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      mix-blend-mode: difference;
+    }
+
+    .brand-logo {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #fff;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--accent-cyan);
+      animation: pulse-dot 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.4); opacity: 1; box-shadow: 0 0 18px var(--accent-cyan); }
+    }
+
+    .brand-status {
+      font-family: var(--font-tech);
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent-silver);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.35rem 0.85rem;
+      border-radius: var(--radius-full);
+      backdrop-filter: blur(8px);
+    }
+
+    /* ==========================================================================
+       HERO SECTION (Kinetic Typography & Decrypted Matrix Effect)
+       ========================================================================== */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 8rem 2rem 6rem;
+      text-align: center;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-tech);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.35em;
+      color: var(--accent-cyan);
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .hero-eyebrow::before, .hero-eyebrow::after {
+      content: '';
+      width: 24px;
+      height: 1px;
+      background: var(--accent-cyan);
+      opacity: 0.6;
+    }
+
+    .hero-title-wrap {
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3.2rem, 9vw, 9.5rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      cursor: default;
+      user-select: none;
+    }
+
+    .hero-title .char {
+      display: inline-block;
+      transform-origin: 50% 100%;
+      will-change: transform, opacity;
+    }
+
+    .hero-title-accent {
+      background: linear-gradient(135deg, #ffffff 20%, var(--accent-cyan) 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* React Bits: Matrix Decrypted Subtitle */
+    .hero-decrypted-wrap {
+      margin-top: 1rem;
+      max-width: 680px;
+    }
+
+    .decrypted-badge {
+      display: inline-block;
+      font-family: var(--font-tech);
+      font-size: 1.15rem;
+      font-weight: 500;
+      color: var(--accent-silver);
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--radius-full);
+      background: rgba(14, 14, 19, 0.7);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .decrypted-badge:hover {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 24px rgba(0, 240, 255, 0.2);
+    }
+
+    .decrypted-badge .hint {
+      font-size: 0.7rem;
+      color: var(--accent-cyan);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-left: 0.75rem;
+      opacity: 0.75;
+    }
+
+    /* Modern Kokonut AI Prompt Bar */
+    .ai-prompt-container {
+      margin-top: 3.5rem;
+      width: 100%;
+      max-width: 640px;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .ai-prompt-bar {
+      display: flex;
+      align-items: center;
+      background: rgba(14, 14, 19, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 0.5rem 0.6rem 0.5rem 1.25rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .ai-prompt-bar:focus-within {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 30px var(--accent-cyan-glow);
+    }
+
+    .ai-prompt-tag {
+      font-family: var(--font-tech);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      background: rgba(0, 240, 255, 0.1);
+      padding: 0.25rem 0.65rem;
+      border-radius: var(--radius-full);
+      margin-right: 0.75rem;
+      white-space: nowrap;
+      border: 1px solid rgba(0, 240, 255, 0.2);
+    }
+
+    .ai-prompt-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+    }
+
+    .ai-prompt-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .ai-prompt-btn {
+      background: linear-gradient(135deg, var(--accent-cyan), #3b82f6);
+      color: #000;
+      border: none;
+      border-radius: var(--radius-full);
+      padding: 0.6rem 1.25rem;
+      font-family: var(--font-tech);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ai-prompt-btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 18px var(--accent-cyan);
+    }
+
+    /* Scroll Indicator */
+    .scroll-down {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      opacity: 0.6;
+      transition: opacity 0.3s ease;
+      cursor: pointer;
+    }
+
+    .scroll-down:hover {
+      opacity: 1;
+    }
+
+    .scroll-down span {
+      font-family: var(--font-tech);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent-silver);
+    }
+
+    .scroll-down-line {
+      width: 1px;
+      height: 36px;
+      background: linear-gradient(to bottom, var(--accent-cyan), transparent);
+      animation: scroll-line 2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+    }
+
+    @keyframes scroll-line {
+      0% { transform: scaleY(0); transform-origin: top; }
+      50% { transform: scaleY(1); transform-origin: top; }
+      50.1% { transform: scaleY(1); transform-origin: bottom; }
+      100% { transform: scaleY(0); transform-origin: bottom; }
+    }
+
+    /* ==========================================================================
+       SECTION HEADERS (Danilo De Marco High-Contrast Editorial Style)
+       ========================================================================== */
+    .section-header {
+      margin-bottom: 4.5rem;
+    }
+
+    .section-num {
+      font-family: var(--font-tech);
+      font-size: 0.85rem;
+      color: var(--accent-cyan);
+      letter-spacing: 0.25em;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    .section-desc {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin-top: 1rem;
+      line-height: 1.6;
+    }
+
+    /* ==========================================================================
+       PINNED HORIZONTAL SCROLL SHOWCASE (GSAP ScrollTrigger)
+       ========================================================================== */
+    .horizontal-showcase {
+      position: relative;
+      background: #09090d;
+      overflow: hidden;
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .horizontal-track-container {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .horizontal-track {
+      display: flex;
+      gap: 3.5rem;
+      padding-left: 8vw;
+      padding-right: 8vw;
+      will-change: transform;
+    }
+
+    .project-card {
+      flex: 0 0 540px;
+      height: 640px;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.4s ease, transform 0.4s ease;
+    }
+
+    .project-card:hover {
+      border-color: var(--accent-cyan);
+      transform: translateY(-8px);
+    }
+
+    .project-badge {
+      font-family: var(--font-tech);
+      font-size: 0.75rem;
+      color: var(--accent-cyan);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .project-visual {
+      flex: 1;
+      margin: 2rem 0;
+      border-radius: var(--radius-md);
+      background: #181822;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .project-visual-pattern {
+      position: absolute;
+      inset: 0;
+      background-size: 24px 24px;
+      opacity: 0.35;
+    }
+
+    .pattern-1 {
+      background-image: radial-gradient(var(--accent-cyan) 1px, transparent 1px);
+    }
+
+    .pattern-2 {
+      background-image: linear-gradient(0deg, rgba(139, 92, 246, 0.15) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(139, 92, 246, 0.15) 1px, transparent 1px);
+    }
+
+    .pattern-3 {
+      background-image: radial-gradient(#ffffff 1px, transparent 1px);
+    }
+
+    .pattern-4 {
+      background-image: linear-gradient(45deg, rgba(0, 240, 255, 0.1) 25%, transparent 25%),
+                        linear-gradient(-45deg, rgba(0, 240, 255, 0.1) 25%, transparent 25%);
+    }
+
+    .project-glyph {
+      font-family: var(--font-display);
+      font-size: 5rem;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.08);
+      user-select: none;
+      transition: color 0.4s ease, transform 0.4s ease;
+    }
+
+    .project-card:hover .project-glyph {
+      color: rgba(0, 240, 255, 0.25);
+      transform: scale(1.1) rotate(6deg);
+    }
+
+    .project-info h3 {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .project-info p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .project-tags {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .project-tag {
+      font-family: var(--font-tech);
+      font-size: 0.7rem;
+      color: var(--accent-silver);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.3rem 0.65rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* ==========================================================================
+       REACT BITS: SPOTLIGHT CARDS & BENTO GRID
+       ========================================================================== */
+    .capabilities-section {
+      padding: 10rem 0;
+      position: relative;
+    }
+
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1.75rem;
+    }
+
+    /* React Bits: Spotlight Card with Mouse Proximity Glow */
+    .spotlight-card {
+      position: relative;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      padding: 2.75rem;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Radial glow created via CSS variable injected by mousemove */
+    .spotlight-card::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: radial-gradient(
+        400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+        var(--card-accent, rgba(0, 240, 255, 0.25)),
+        transparent 65%
+      );
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .spotlight-card:hover::before {
+      opacity: 1;
+    }
+
+    .spotlight-card > * {
+      position: relative;
+      z-index: 2;
+    }
+
+    .col-span-8 { grid-column: span 8; min-height: 380px; }
+    .col-span-4 { grid-column: span 4; min-height: 380px; }
+    .col-span-6 { grid-column: span 6; min-height: 360px; }
+
+    .bento-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2rem;
+      color: var(--accent-cyan);
+    }
+
+    .bento-title {
+      font-family: var(--font-display);
+      font-size: 1.85rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.01em;
+    }
+
+    .bento-desc {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .bento-meta {
+      margin-top: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .bento-stat {
+      font-family: var(--font-tech);
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .bento-stat-label {
+      font-family: var(--font-tech);
+      font-size: 0.75rem;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* ==========================================================================
+       STACKED CARD DECK (Ollivere Style)
+       ========================================================================== */
+    .deck-section {
+      padding: 8rem 0 14rem;
+      position: relative;
+    }
+
+    .deck-container {
+      position: relative;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .deck-card {
+      position: sticky;
+      top: 14vh;
+      background: #111118;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-lg);
+      padding: 3.5rem;
+      margin-bottom: 4rem;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
+      transform-origin: center top;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .deck-card-1 { border-top: 2px solid var(--accent-cyan); }
+    .deck-card-2 { border-top: 2px solid var(--accent-violet); }
+    .deck-card-3 { border-top: 2px solid #ffffff; }
+
+    .deck-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 1.5rem;
+    }
+
+    .deck-phase {
+      font-family: var(--font-tech);
+      font-size: 0.85rem;
+      color: var(--accent-cyan);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .deck-num {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.15);
+    }
+
+    .deck-card h4 {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .deck-card p {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 780px;
+      line-height: 1.7;
+    }
+
+    /* ==========================================================================
+       KOKONUT UI: DYNAMIC ISLAND BOTTOM FLOATING DOCK
+       ========================================================================== */
+    .dock-wrapper {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+    }
+
+    .dynamic-island-dock {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(14, 14, 20, 0.92);
+      backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 0.6rem 0.8rem;
+      border-radius: var(--radius-full);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.3);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .dynamic-island-dock:hover {
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9), 0 0 25px rgba(0, 240, 255, 0.2);
+      border-color: rgba(0, 240, 255, 0.3);
+    }
+
+    .dock-item {
+      position: relative;
+      width: 46px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-full);
+      color: var(--accent-silver);
+      text-decoration: none;
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                  background-color 0.25s ease,
+                  color 0.25s ease;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .dock-item svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 1.8;
+      transition: stroke 0.2s ease;
+    }
+
+    .dock-item:hover {
+      transform: translateY(-8px) scale(1.15);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--accent-cyan);
+    }
+
+    .dock-item.active {
+      color: var(--accent-cyan);
+      background: rgba(0, 240, 255, 0.1);
+    }
+
+    /* Spring Hover Tooltip */
+    .dock-tooltip {
+      position: absolute;
+      top: -38px;
+      left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      background: #191924;
+      color: #fff;
+      font-family: var(--font-tech);
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .dock-item:hover .dock-tooltip {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .dock-separator {
+      width: 1px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 0 0.2rem;
+    }
+
+    /* Footer Branding */
+    footer {
+      padding: 6rem 0 10rem;
+      text-align: center;
+      border-top: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-family: var(--font-tech);
+    }
+
+    footer a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 1024px) {
+      .bento-grid { grid-template-columns: 1fr; }
+      .col-span-8, .col-span-4, .col-span-6 { grid-column: span 1; }
+      .project-card { flex: 0 0 380px; height: 560px; }
+    }
+
+    @media (max-width: 768px) {
+      header { padding: 1.25rem 1.5rem; }
+      .project-card { flex: 0 0 300px; height: 500px; padding: 1.5rem; }
+      .deck-card { padding: 2rem; }
+      .dynamic-island-dock { padding: 0.4rem 0.6rem; }
+      .dock-item { width: 40px; height: 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Niccolo Miranda Film Grain Texture (SVG Turbulence) -->
+  <svg class="film-grain" xmlns="http://www.w3.org/2000/svg">
+    <filter id="film-grain-filter">
+      <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" stitchTiles="stitch" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 1 0"/>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#film-grain-filter)"></rect>
+  </svg>
+
+  <!-- React Bits: Interactive Mouse-Reactive Canvas Dot Grid -->
+  <canvas id="canvas-dot-grid"></canvas>
+
+  <!-- Main Navigation Header -->
+  <header>
+    <a href="#" class="brand-logo">
+      <span class="brand-dot"></span>
+      Aether Labs
+    </a>
+    <div class="brand-status">STUDIO VERIFIED // 2026 EDITION</div>
+  </header>
+
+  <main>
+    <!-- HERO SECTION -->
+    <section class="hero" id="home">
+      <div class="hero-eyebrow">
+        <span>KINETIC MOTION LAB</span>
+        <span>•</span>
+        <span>AESTHETIC INTELLIGENCE</span>
+      </div>
+
+      <!-- Danilo De Marco Editorial Typography: BEYOND THE HORIZON -->
+      <div class="hero-title-wrap">
+        <h1 class="hero-title" id="kinetic-title">
+          <span class="char">B</span><span class="char">E</span><span class="char">Y</span><span class="char">O</span><span class="char">N</span><span class="char">D</span>
+          <span>&nbsp;</span>
+          <span class="char">T</span><span class="char">H</span><span class="char">E</span>
+          <br>
+          <span class="char hero-title-accent">H</span><span class="char hero-title-accent">O</span><span class="char hero-title-accent">R</span><span class="char hero-title-accent">I</span><span class="char hero-title-accent">Z</span><span class="char hero-title-accent">O</span><span class="char hero-title-accent">N</span>
+        </h1>
+      </div>
+
+      <!-- React Bits: Live Matrix Decrypted Subtitle -->
+      <div class="hero-decrypted-wrap">
+        <div class="decrypted-badge" id="decrypted-tag" data-original="CRAFTING HIGH-PERFORMANCE EXPERIENCES THROUGH PROCEDURAL CODE">
+          <span class="text-inner">CRAFTING HIGH-PERFORMANCE EXPERIENCES THROUGH PROCEDURAL CODE</span>
+          <span class="hint">[HOVER TO DECRYPT]</span>
+        </div>
+      </div>
+
+      <!-- Kokonut UI: Modern AI Prompt Bar -->
+      <div class="ai-prompt-container">
+        <div class="ai-prompt-bar">
+          <span class="ai-prompt-tag">✦ Prompt AI</span>
+          <input type="text" class="ai-prompt-input" id="ai-prompt-input" placeholder="Ask Aether to synthesize a spatial interactive component...">
+          <button class="ai-prompt-btn" id="ai-prompt-btn">
+            Synthesize
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Scroll Down Indicator -->
+      <div class="scroll-down" id="scroll-prompt">
+        <span>EXPLORE ARCHIVE</span>
+        <div class="scroll-down-line"></div>
+      </div>
+    </section>
+
+    <!-- PINNED HORIZONTAL SCROLL SHOWCASE (GSAP ScrollTrigger) -->
+    <section class="horizontal-showcase" id="projects">
+      <div class="horizontal-track-container" id="horizontal-track-container">
+        <div class="horizontal-track" id="horizontal-track">
+          
+          <!-- Project 01 -->
+          <div class="project-card">
+            <div>
+              <span class="project-badge">CASE STUDY 01 // SPATIAL WEB</span>
+              <div class="project-visual">
+                <div class="project-visual-pattern pattern-1"></div>
+                <div class="project-glyph">01</div>
+              </div>
+            </div>
+            <div class="project-info">
+              <h3>NEO CHRONOS</h3>
+              <p>Temporal physics engine with inertial time dilation for luxury horology brand.</p>
+              <div class="project-tags">
+                <span class="project-tag">GSAP 3</span>
+                <span class="project-tag">Lenis</span>
+                <span class="project-tag">WebGL</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 02 -->
+          <div class="project-card">
+            <div>
+              <span class="project-badge">CASE STUDY 02 // GENERATIVE SYSTEM</span>
+              <div class="project-visual">
+                <div class="project-visual-pattern pattern-2"></div>
+                <div class="project-glyph">02</div>
+              </div>
+            </div>
+            <div class="project-info">
+              <h3>SYNAPSE CORE</h3>
+              <p>Real-time neural particle simulator rendering 40,000 active synapses on canvas.</p>
+              <div class="project-tags">
+                <span class="project-tag">React Bits</span>
+                <span class="project-tag">Canvas 2D</span>
+                <span class="project-tag">Shader</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 03 -->
+          <div class="project-card">
+            <div>
+              <span class="project-badge">CASE STUDY 03 // DIGITAL EDITORIAL</span>
+              <div class="project-visual">
+                <div class="project-visual-pattern pattern-3"></div>
+                <div class="project-glyph">03</div>
+              </div>
+            </div>
+            <div class="project-info">
+              <h3>MONOLITH 2026</h3>
+              <p>Brutalist typography layout with custom variable font scrubbing on scroll.</p>
+              <div class="project-tags">
+                <span class="project-tag">ScrollTrigger</span>
+                <span class="project-tag">Kinetic Type</span>
+                <span class="project-tag">Awwwards SOTD</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 04 -->
+          <div class="project-card">
+            <div>
+              <span class="project-badge">CASE STUDY 04 // INTERFACE DESIGN</span>
+              <div class="project-visual">
+                <div class="project-visual-pattern pattern-4"></div>
+                <div class="project-glyph">04</div>
+              </div>
+            </div>
+            <div class="project-info">
+              <h3>AETHER OS</h3>
+              <p>Spatial desktop interface utilizing Kokonut UI spring dynamics & dock physics.</p>
+              <div class="project-tags">
+                <span class="project-tag">Kokonut UI</span>
+                <span class="project-tag">Spring Motion</span>
+                <span class="project-tag">Micro-Interactions</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- CAPABILITIES: REACT BITS SPOTLIGHT CARDS & BENTO GRID -->
+    <section class="capabilities-section" id="capabilities">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-num">// CAPABILITIES & DISCIPLINE</span>
+          <h2 class="section-title">ENGINEERED FOR RAW IMPACT</h2>
+          <p class="section-desc">We merge high-velocity creative engineering with awards-grade aesthetic precision.</p>
+        </div>
+
+        <div class="bento-grid">
+          <!-- Spotlight Card 1: Kinetic Physics -->
+          <div class="spotlight-card col-span-8" style="--card-accent: rgba(0, 240, 255, 0.3);">
+            <div>
+              <div class="bento-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <h3 class="bento-title">Kinetic Physics & Inertial Momentum</h3>
+              <p class="bento-desc">Zero mechanical lag. We design custom spring-mass physics rigs that calculate velocity vectors, easing curves, and gyroscopic orientation dynamically on every animation frame.</p>
+            </div>
+            <div class="bento-meta">
+              <div>
+                <div class="bento-stat">120 FPS</div>
+                <div class="bento-stat-label">Refresh Synchronization</div>
+              </div>
+              <div>
+                <div class="bento-stat">0.02ms</div>
+                <div class="bento-stat-label">Frame Dispatch Latency</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spotlight Card 2: Micro-Interactions -->
+          <div class="spotlight-card col-span-4" style="--card-accent: rgba(139, 92, 246, 0.35);">
+            <div>
+              <div class="bento-icon" style="color: var(--accent-violet);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6Z"/></svg>
+              </div>
+              <h3 class="bento-title">Matrix Cryptography</h3>
+              <p class="bento-desc">Dynamic character decrypters, magnetic button fields, and tactile mouse spotlight halos.</p>
+            </div>
+            <div class="bento-meta">
+              <div>
+                <div class="bento-stat">React Bits</div>
+                <div class="bento-stat-label">Component Architecture</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spotlight Card 3: Dynamic Islands -->
+          <div class="spotlight-card col-span-4" style="--card-accent: rgba(255, 255, 255, 0.25);">
+            <div>
+              <div class="bento-icon" style="color: #ffffff;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+              </div>
+              <h3 class="bento-title">Adaptive Docks</h3>
+              <p class="bento-desc">Kokonut UI inspired floating dock interfaces responding to user viewport states.</p>
+            </div>
+            <div class="bento-meta">
+              <div>
+                <div class="bento-stat">Kokonut</div>
+                <div class="bento-stat-label">UI Standard</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spotlight Card 4: WebGL & Paper Shaders -->
+          <div class="spotlight-card col-span-8" style="--card-accent: rgba(0, 240, 255, 0.3);">
+            <div>
+              <div class="bento-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              </div>
+              <h3 class="bento-title">Film Grain & Organic Shader Textures</h3>
+              <p class="bento-desc">Authentic Niccolò Miranda and Thibaut Foussier texture matrices. We eliminate cold digital sterility with procedural fractal noise, editorial serif pairings, and analog grain overlays.</p>
+            </div>
+            <div class="bento-meta">
+              <div>
+                <div class="bento-stat">100%</div>
+                <div class="bento-stat-label">Procedural Vector Noise</div>
+              </div>
+              <div>
+                <div class="bento-stat">0 KB</div>
+                <div class="bento-stat-label">External Image Assets</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STACKED CARD DECK SECTION (Ollivere Style) -->
+    <section class="deck-section" id="process">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-num">// THE ARCHITECTURAL CYCLE</span>
+          <h2 class="section-title">HOW WE OPERATE</h2>
+          <p class="section-desc">Observe the stacked card deck pinning and scaling smoothly on scroll.</p>
+        </div>
+
+        <div class="deck-container">
+          <!-- Card 1 -->
+          <div class="deck-card deck-card-1" data-index="1">
+            <div class="deck-card-header">
+              <span class="deck-phase">PHASE 01 // STRUCTURAL DECONSTRUCTION</span>
+              <span class="deck-num">01</span>
+            </div>
+            <h4>Radical Code Hygiene</h4>
+            <p>Every line of code traces directly to an intentional user sensation. We purge boilerplate, reject generic frosted glass cliches, and establish high-contrast typographic scales with pure mathematical ratios.</p>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="deck-card deck-card-2" data-index="2">
+            <div class="deck-card-header">
+              <span class="deck-phase">PHASE 02 // INERTIAL CHOREOGRAPHY</span>
+              <span class="deck-num">02</span>
+            </div>
+            <h4>Kinetic Synchronization</h4>
+            <p>We bind the Lenis smooth scroll ticker directly to GSAP's high-precision RAF clock. Custom ScrollTrigger timelines orchestrate horizontal scrubs, character stagger cascades, and scale transforms without frame drops.</p>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="deck-card deck-card-3" data-index="3">
+            <div class="deck-card-header">
+              <span class="deck-phase">PHASE 03 // ZERO-STUB VERIFICATION</span>
+              <span class="deck-num">03</span>
+            </div>
+            <h4>Autonomous Headless Validation</h4>
+            <p>No placeholders. No half-finished stubs. Every component undergoes rigorous automated browser verification for DOM health, 0 console exceptions, and multimodal aesthetic fidelity before landing in production.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <p>© 2026 AETHER LABS. ALL RIGHTS RESERVED. POWERED BY GSAP, LENIS, REACT BITS & KOKONUT UI.</p>
+      </div>
+    </footer>
+  </main>
+
+  <!-- KOKONUT UI: FLOATING DYNAMIC ISLAND DOCK -->
+  <div class="dock-wrapper">
+    <nav class="dynamic-island-dock" aria-label="Quick Navigation">
+      <a href="#home" class="dock-item active" data-target="home" aria-label="Home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="dock-tooltip">Home</span>
+      </a>
+
+      <a href="#projects" class="dock-item" data-target="projects" aria-label="Projects">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+        <span class="dock-tooltip">Showcase</span>
+      </a>
+
+      <a href="#capabilities" class="dock-item" data-target="capabilities" aria-label="Capabilities">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        <span class="dock-tooltip">Capabilities</span>
+      </a>
+
+      <a href="#process" class="dock-item" data-target="process" aria-label="Process">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span class="dock-tooltip">Process</span>
+      </a>
+
+      <div class="dock-separator"></div>
+
+      <button class="dock-item" id="dock-action-btn" aria-label="Run Synthesis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span class="dock-tooltip">Ignite AI</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==========================================================================
+       SCRIPTS: LENIS + GSAP + REACT BITS + KOKONUT SCRIPTING
+       ========================================================================== -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. REGISTER GSAP PLUGINS
+      gsap.registerPlugin(ScrollTrigger);
+
+      // 2. LENIS SMOOTH SCROLL & GSAP TICKER SYNCHRONIZATION
+      const lenis = new Lenis({
+        duration: 1.25,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smoothWheel: true,
+        smoothTouch: false
+      });
+
+      lenis.on('scroll', ScrollTrigger.update);
+
+      gsap.ticker.add((time) => {
+        lenis.raf(time * 1000);
+      });
+
+      gsap.ticker.lagSmoothing(0);
+
+      // Smooth scroll for anchor clicks in dynamic island dock
+      document.querySelectorAll('.dock-item[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+          e.preventDefault();
+          const targetId = this.getAttribute('href');
+          const targetEl = document.querySelector(targetId);
+          if (targetEl) {
+            lenis.scrollTo(targetEl, { offset: 0, duration: 1.4 });
+            document.querySelectorAll('.dock-item').forEach(el => el.classList.remove('active'));
+            this.classList.add('active');
+          }
+        });
+      });
+
+      // 3. REACT BITS: INTERACTIVE CANVAS DOT GRID (Cursor Proximity Reactivity)
+      const canvas = document.getElementById('canvas-dot-grid');
+      const ctx = canvas.getContext('2d');
+      let mouseX = -1000;
+      let mouseY = -1000;
+      let dots = [];
+      const SPACING = 36;
+      const BASE_RADIUS = 1.2;
+      const MAX_RADIUS = 3.8;
+      const PROXIMITY = 140;
+
+      function resizeCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        ctx.scale(dpr, dpr);
+        initDots();
+      }
+
+      function initDots() {
+        dots = [];
+        const cols = Math.ceil(window.innerWidth / SPACING) + 1;
+        const rows = Math.ceil(window.innerHeight / SPACING) + 1;
+        for (let i = 0; i < cols; i++) {
+          for (let j = 0; j < rows; j++) {
+            dots.push({
+              x: i * SPACING,
+              y: j * SPACING,
+              origX: i * SPACING,
+              origY: j * SPACING,
+              radius: BASE_RADIUS,
+              alpha: 0.18
+            });
+          }
+        }
+      }
+
+      window.addEventListener('resize', resizeCanvas);
+      window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      });
+
+      window.addEventListener('mouseleave', () => {
+        mouseX = -1000;
+        mouseY = -1000;
+      });
+
+      function renderDots() {
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+        for (let i = 0; i < dots.length; i++) {
+          const d = dots[i];
+          const dx = mouseX - d.origX;
+          const dy = mouseY - d.origY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < PROXIMITY) {
+            const factor = 1 - dist / PROXIMITY;
+            // Slight repulsive magnet nudge
+            d.x = d.origX - (dx / dist) * factor * 12;
+            d.y = d.origY - (dy / dist) * factor * 12;
+            d.radius = BASE_RADIUS + factor * (MAX_RADIUS - BASE_RADIUS);
+            d.alpha = 0.2 + factor * 0.7;
+
+            // Render glowing cyan dot
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(0, 240, 255, ${d.alpha})`;
+            ctx.shadowBlur = factor * 8;
+            ctx.shadowColor = '#00f0ff';
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          } else {
+            // Spring back
+            d.x += (d.origX - d.x) * 0.1;
+            d.y += (d.origY - d.y) * 0.1;
+            d.radius += (BASE_RADIUS - d.radius) * 0.1;
+            d.alpha += (0.16 - d.alpha) * 0.1;
+
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${d.alpha})`;
+            ctx.fill();
+          }
+        }
+
+        requestAnimationFrame(renderDots);
+      }
+
+      resizeCanvas();
+      requestAnimationFrame(renderDots);
+
+      // 4. HERO KINETIC TYPOGRAPHY (Staggered Character Cascade)
+      const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
+
+      tl.to(".hero-eyebrow", {
+        opacity: 1,
+        y: 0,
+        duration: 1,
+        delay: 0.2
+      })
+      .from("#kinetic-title .char", {
+        y: 120,
+        rotateX: -60,
+        opacity: 0,
+        duration: 1.2,
+        stagger: 0.04,
+        ease: "back.out(1.4)"
+      }, "-=0.6")
+      .to(".ai-prompt-container", {
+        opacity: 1,
+        y: 0,
+        duration: 1
+      }, "-=0.5");
+
+      // 5. REACT BITS: MATRIX DECRYPTED TEXT INTERACTION
+      const decryptBadge = document.getElementById('decrypted-tag');
+      const textInner = decryptBadge.querySelector('.text-inner');
+      const originalText = decryptBadge.getAttribute('data-original');
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?";
+      let decryptInterval = null;
+      let isDecrypting = false;
+
+      function runDecryption() {
+        if (isDecrypting) return;
+        isDecrypting = true;
+        let iteration = 0;
+        clearInterval(decryptInterval);
+
+        decryptInterval = setInterval(() => {
+          textInner.innerText = originalText
+            .split("")
+            .map((letter, index) => {
+              if (index < iteration) {
+                return originalText[index];
+              }
+              if (letter === " ") return " ";
+              return chars[Math.floor(Math.random() * chars.length)];
+            })
+            .join("");
+
+          if (iteration >= originalText.length) {
+            clearInterval(decryptInterval);
+            isDecrypting = false;
+          }
+
+          iteration += 1;
+        }, 25);
+      }
+
+      decryptBadge.addEventListener('mouseenter', runDecryption);
+      decryptBadge.addEventListener('click', runDecryption);
+
+      // 6. REACT BITS: SPOTLIGHT CARDS CURSOR TRACKING
+      const spotlightCards = document.querySelectorAll('.spotlight-card');
+      spotlightCards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          card.style.setProperty('--mouse-x', `${x}px`);
+          card.style.setProperty('--mouse-y', `${y}px`);
+        });
+      });
+
+      // 7. PINNED HORIZONTAL SCROLL SHOWCASE (GSAP ScrollTrigger)
+      const track = document.getElementById('horizontal-track');
+      const container = document.getElementById('horizontal-track-container');
+
+      function getScrollAmount() {
+        return track.scrollWidth - window.innerWidth;
+      }
+
+      const horizTween = gsap.to(track, {
+        x: () => -getScrollAmount(),
+        ease: "none",
+        scrollTrigger: {
+          trigger: ".horizontal-showcase",
+          start: "top top",
+          end: () => `+=${getScrollAmount()}`,
+          pin: true,
+          scrub: 1,
+          invalidateOnRefresh: true
+        }
+      });
+
+      // 8. OLLIVERE STACKED CARDS (Scale & Pin on Scroll)
+      const deckCards = document.querySelectorAll('.deck-card');
+      deckCards.forEach((card, index) => {
+        if (index < deckCards.length - 1) {
+          gsap.to(card, {
+            scale: 0.92 - index * 0.03,
+            filter: "brightness(0.65)",
+            scrollTrigger: {
+              trigger: deckCards[index + 1],
+              start: "top 75%",
+              end: "top 18%",
+              scrub: true
+            }
+          });
+        }
+      });
+
+      // 9. AI PROMPT INTERACTION & COMMAND BAR
+      const aiBtn = document.getElementById('ai-prompt-btn');
+      const aiInput = document.getElementById('ai-prompt-input');
+      const dockActionBtn = document.getElementById('dock-action-btn');
+
+      function triggerAiSynthesis() {
+        const query = aiInput.value.trim() || "Spatial Interaction Physics Rig";
+        aiBtn.innerHTML = `Synthesizing... <span style="display:inline-block; animation: spin 1s infinite linear">✦</span>`;
+        aiBtn.style.background = "linear-gradient(135deg, #00f0ff, #8b5cf6)";
+        
+        setTimeout(() => {
+          aiBtn.innerHTML = `Synthesized ✔`;
+          runDecryption();
+          setTimeout(() => {
+            aiBtn.innerHTML = `Synthesize <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
+            aiBtn.style.background = "linear-gradient(135deg, var(--accent-cyan), #3b82f6)";
+          }, 2000);
+        }, 1200);
+      }
+
+      aiBtn.addEventListener('click', triggerAiSynthesis);
+      aiInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') triggerAiSynthesis();
+      });
+
+      dockActionBtn.addEventListener('click', () => {
+        lenis.scrollTo('#home', { duration: 1.2 });
+        aiInput.focus();
+        triggerAiSynthesis();
+      });
+
+      // Scroll prompt button
+      document.getElementById('scroll-prompt').addEventListener('click', () => {
+        lenis.scrollTo('#projects', { duration: 1.4 });
+      });
+
+      // Active state updater on scroll
+      window.addEventListener('scroll', () => {
+        const sections = ['home', 'projects', 'capabilities', 'process'];
+        let current = 'home';
+        sections.forEach(secId => {
+          const el = document.getElementById(secId);
+          if (el) {
+            const rect = el.getBoundingClientRect();
+            if (rect.top <= window.innerHeight * 0.4) {
+              current = secId;
+            }
+          }
+        });
+        document.querySelectorAll('.dock-item[data-target]').forEach(item => {
+          if (item.getAttribute('data-target') === current) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

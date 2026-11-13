@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEXUS QUANTUM // Cybernetic Bio-Robotics & Neural Dynamics Laboratory</title>
+
+  <!-- Typography: Syne (Monumental Editorial Display) & Space Grotesk (Tech Monospace) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Motion Engines: GSAP 3.12.5 + ScrollTrigger + Lenis 1.1.18 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+
+  <style>
+    /* ==========================================================================
+       0. CSS RESET & ARCHITECTURAL PALETTE (Obsidian, Neon Emerald & Cyan)
+       ========================================================================== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-void: #050508;
+      --bg-surface: #0a0b10;
+      --bg-card: #0f1118;
+      --bg-glass: rgba(15, 17, 24, 0.75);
+      --text-main: #f0f4f8;
+      --text-muted: #7c8294;
+      --neon-emerald: #00ff88;
+      --neon-emerald-glow: rgba(0, 255, 136, 0.35);
+      --neon-cyan: #00f0ff;
+      --neon-cyan-glow: rgba(0, 240, 255, 0.3);
+      --neon-violet: #a855f7;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(0, 255, 136, 0.4);
+      --font-display: 'Syne', sans-serif;
+      --font-tech: 'Space Grotesk', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-body: 'Inter', sans-serif;
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-full: 9999px;
+    }
+
+    body {
+      background-color: var(--bg-void);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      cursor: none; /* Controlled by custom follower cursor */
+    }
+
+    /* 23. Procedural SVG Film Grain Overlay (Creative Web Design) */
+    .film-grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.05;
+      mix-blend-mode: overlay;
+    }
+
+    /* 13. Custom Smooth Follower Cursor (React Bits) */
+    #cursor-follower {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 32px;
+      height: 32px;
+      border: 1.5px solid var(--neon-emerald);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10000;
+      transform: translate(-50%, -50%);
+      transition: width 0.25s ease, height 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
+      box-shadow: 0 0 14px var(--neon-emerald-glow);
+    }
+
+    #cursor-dot {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 6px;
+      height: 6px;
+      background-color: var(--neon-cyan);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10001;
+      transform: translate(-50%, -50%);
+    }
+
+    #cursor-follower.cursor-hover {
+      width: 56px;
+      height: 56px;
+      background: rgba(0, 255, 136, 0.12);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 24px var(--neon-cyan-glow);
+    }
+
+    /* 2. GSAP Scroll Progress Bar (GSAP / Creative Design) */
+    #scroll-progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--neon-emerald), var(--neon-cyan), var(--neon-violet));
+      z-index: 10002;
+      box-shadow: 0 0 10px var(--neon-emerald);
+    }
+
+    /* 8. Interactive Canvas Particle Wave (React Bits) */
+    #particle-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Multi-depth Parallax Layering (GSAP) */
+    .parallax-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    .parallax-grid-bg {
+      background-image: 
+        radial-gradient(rgba(0, 255, 136, 0.08) 1px, transparent 1px),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 40px 40px, 120px 120px, 120px 120px;
+      opacity: 0.7;
+    }
+
+    /* Main Container */
+    .container {
+      width: 100%;
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* ==========================================================================
+       HEADER & 18. LIVE STATUS BEACON PILL (Kokonut UI)
+       ========================================================================== */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 1.5rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      background: linear-gradient(to bottom, rgba(5, 5, 8, 0.9), transparent);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .brand-logo-icon {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--neon-emerald);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px var(--neon-emerald-glow);
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    /* 18. Live Status Beacon Pill */
+    .status-beacon-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      background: rgba(15, 17, 24, 0.85);
+      border: 1px solid var(--border-subtle);
+      padding: 0.4rem 0.95rem;
+      border-radius: var(--radius-full);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .status-beacon-radar {
+      position: relative;
+      width: 8px;
+      height: 8px;
+    }
+
+    .status-beacon-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--neon-emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--neon-emerald);
+    }
+
+    .status-beacon-wave {
+      position: absolute;
+      inset: -4px;
+      border: 1.5px solid var(--neon-emerald);
+      border-radius: 50%;
+      animation: radar-pulse 2s infinite cubic-bezier(0, 0.2, 0.8, 1);
+    }
+
+    @keyframes radar-pulse {
+      0% { transform: scale(0.6); opacity: 1; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+
+    /* 11. Shiny Gradient Shimmer Text (React Bits) */
+    .shiny-text {
+      background: linear-gradient(110deg, #7c8294 20%, #ffffff 50%, #7c8294 80%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: text-shimmer 3.5s infinite linear;
+      font-weight: 600;
+    }
+
+    @keyframes text-shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ==========================================================================
+       HERO SECTION & 3. KINETIC TYPOGRAPHY & 7. DECRYPTED TEXT
+       ========================================================================== */
+    .hero-section {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 9rem 2rem 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      letter-spacing: 0.3em;
+      color: var(--neon-emerald);
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    /* 24. Danilo De Marco Monumental Typography & 3. Kinetic Stagger */
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3.2rem, 9.5vw, 10rem);
+      font-weight: 800;
+      line-height: 0.92;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      user-select: none;
+    }
+
+    .hero-title .char {
+      display: inline-block;
+      transform-origin: 50% 100%;
+      will-change: transform, opacity;
+    }
+
+    .hero-title .accent-char {
+      background: linear-gradient(135deg, #ffffff 30%, var(--neon-emerald) 85%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* 7. Real-Time Matrix Decrypted Text (React Bits) */
+    .decrypted-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 0.75rem 1.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .decrypted-badge:hover {
+      border-color: var(--neon-emerald);
+      box-shadow: 0 0 25px var(--neon-emerald-glow);
+    }
+
+    .decrypted-hint {
+      font-size: 0.7rem;
+      color: var(--neon-emerald);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: rgba(0, 255, 136, 0.1);
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-full);
+    }
+
+    /* 14. Blur-to-Sharp Text Reveal */
+    .blur-reveal {
+      filter: blur(12px);
+      opacity: 0;
+      transform: translateY(25px);
+      transition: filter 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .blur-reveal.revealed {
+      filter: blur(0px);
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 10. Magnetic Physics Button (React Bits) */
+    .hero-cta-group {
+      margin-top: 3.5rem;
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .magnetic-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: linear-gradient(135deg, var(--neon-emerald), #00b4d8);
+      color: #050508;
+      font-family: var(--font-tech);
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0.9rem 2rem;
+      border-radius: var(--radius-full);
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 0 25px var(--neon-emerald-glow);
+      transition: box-shadow 0.3s ease;
+      will-change: transform;
+    }
+
+    .magnetic-btn-outline {
+      background: transparent;
+      color: #ffffff;
+      border: 1px solid var(--border-subtle);
+      box-shadow: none;
+    }
+
+    .magnetic-btn-outline:hover {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 20px var(--neon-cyan-glow);
+    }
+
+    /* 26. Infinite Kinetic Marquee Ribbon (Creative Design) */
+    .marquee-wrapper {
+      width: 100%;
+      overflow: hidden;
+      background: rgba(10, 11, 16, 0.8);
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 1.25rem 0;
+      position: relative;
+      z-index: 20;
+    }
+
+    .marquee-track {
+      display: flex;
+      gap: 3rem;
+      width: max-content;
+      animation: marquee-scroll 24s linear infinite;
+    }
+
+    .marquee-item {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      letter-spacing: 0.15em;
+      white-space: nowrap;
+    }
+
+    .marquee-item span.highlight {
+      color: var(--neon-emerald);
+      font-weight: 700;
+    }
+
+    @keyframes marquee-scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ==========================================================================
+       4. PINNED HORIZONTAL RAIL SHOWCASE (GSAP ScrollTrigger)
+       ========================================================================== */
+    .horizontal-showcase {
+      position: relative;
+      background: #08090d;
+      border-bottom: 1px solid var(--border-subtle);
+      overflow: hidden;
+    }
+
+    .horizontal-track-container {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .horizontal-track {
+      display: flex;
+      gap: 3.5rem;
+      padding: 0 10vw;
+      will-change: transform;
+    }
+
+    /* 12. 3D Tilt Card Perspective (React Bits) */
+    .module-card {
+      flex: 0 0 520px;
+      height: 620px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .module-card:hover {
+      border-color: var(--neon-emerald);
+      box-shadow: 0 0 35px var(--neon-emerald-glow);
+    }
+
+    .module-tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--neon-emerald);
+      letter-spacing: 0.2em;
+    }
+
+    .module-visual {
+      flex: 1;
+      margin: 1.75rem 0;
+      border-radius: var(--radius-md);
+      background: #141722;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .module-vector-icon {
+      width: 120px;
+      height: 120px;
+      color: rgba(0, 255, 136, 0.6);
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), color 0.5s ease;
+    }
+
+    .module-card:hover .module-vector-icon {
+      transform: scale(1.15) rotate(5deg);
+      color: var(--neon-emerald);
+    }
+
+    .module-title {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .module-desc {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* 6. Dynamic Number Ticker Counters (GSAP) */
+    .module-metrics {
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .metric-val {
+      font-family: var(--font-mono);
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--neon-cyan);
+    }
+
+    .metric-lbl {
+      font-family: var(--font-tech);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* ==========================================================================
+       17. BENTO GRID ARCHITECTURE & 9. SPOTLIGHT CARDS (Kokonut UI & React Bits)
+       ========================================================================== */
+    .section-padding {
+      padding: 9rem 0;
+      position: relative;
+    }
+
+    .section-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--neon-emerald);
+      letter-spacing: 0.25em;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    .section-heading {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5.5vw, 4.8rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .section-subtext {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 650px;
+      line-height: 1.6;
+      margin-bottom: 4rem;
+    }
+
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1.75rem;
+    }
+
+    /* 9. Spotlight Card Radial Glow Border (React Bits) */
+    .spotlight-card {
+      position: relative;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2.75rem;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .spotlight-card::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: radial-gradient(
+        450px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+        var(--spotlight-color, rgba(0, 255, 136, 0.28)),
+        transparent 65%
+      );
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .spotlight-card:hover::before {
+      opacity: 1;
+    }
+
+    .spotlight-card > * {
+      position: relative;
+      z-index: 2;
+    }
+
+    .col-span-8 { grid-column: span 8; }
+    .col-span-4 { grid-column: span 4; }
+    .col-span-6 { grid-column: span 6; }
+
+    .bento-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--neon-cyan);
+      margin-bottom: 1.5rem;
+    }
+
+    .bento-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .bento-desc {
+      color: var(--text-muted);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    /* 19. Segmented Tab Switcher (Kokonut UI) */
+    .segmented-tabs {
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.35rem;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-subtle);
+      position: relative;
+      margin-top: 1.5rem;
+    }
+
+    .tab-btn {
+      position: relative;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-tech);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.5rem 1.25rem;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      z-index: 2;
+      transition: color 0.3s ease;
+    }
+
+    .tab-btn.active {
+      color: #050508;
+    }
+
+    .tab-slider-pill {
+      position: absolute;
+      top: 0.35rem;
+      bottom: 0.35rem;
+      background: var(--neon-emerald);
+      border-radius: var(--radius-full);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1;
+      box-shadow: 0 0 15px var(--neon-emerald-glow);
+    }
+
+    /* 20. Interactive Spring Toggle Switches (Kokonut UI) */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .toggle-switch {
+      width: 54px;
+      height: 30px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-full);
+      position: relative;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .toggle-switch.active {
+      background: var(--neon-emerald);
+      box-shadow: 0 0 16px var(--neon-emerald-glow);
+    }
+
+    .toggle-handle {
+      width: 22px;
+      height: 22px;
+      background: #ffffff;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px;
+      left: 4px;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .toggle-switch.active .toggle-handle {
+      transform: translateX(24px);
+      background: #050508;
+    }
+
+    /* 22. Interactive Parameter Scrub Slider (Kokonut UI) */
+    .slider-box {
+      margin-top: 1.75rem;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .slider-input {
+      width: 100%;
+      height: 6px;
+      -webkit-appearance: none;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-full);
+      outline: none;
+    }
+
+    .slider-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--neon-cyan);
+      box-shadow: 0 0 14px var(--neon-cyan-glow);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .slider-input::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+
+    /* ==========================================================================
+       25. OLLIVERE PINNED STACKED CARD DECK (Creative Design)
+       ========================================================================== */
+    .deck-section {
+      padding: 8rem 0 12rem;
+      position: relative;
+    }
+
+    .deck-container {
+      max-width: 1040px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .deck-card {
+      position: sticky;
+      top: 15vh;
+      background: #10121a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-lg);
+      padding: 3.5rem;
+      margin-bottom: 4rem;
+      box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.9);
+      transform-origin: center top;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .deck-card-1 { border-top: 3px solid var(--neon-emerald); }
+    .deck-card-2 { border-top: 3px solid var(--neon-cyan); }
+    .deck-card-3 { border-top: 3px solid var(--neon-violet); }
+
+    .deck-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 1.5rem;
+    }
+
+    .deck-num {
+      font-family: var(--font-display);
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.15);
+    }
+
+    .deck-title {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .deck-body {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 780px;
+    }
+
+    /* 27. Technical Accordion / Disclosure Drawer (Creative Design) */
+    .accordion-wrap {
+      margin-top: 2rem;
+    }
+
+    .accordion-item {
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      margin-bottom: 1rem;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .accordion-trigger {
+      width: 100%;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-family: var(--font-tech);
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .accordion-trigger svg {
+      transition: transform 0.3s ease;
+    }
+
+    .accordion-item.active .accordion-trigger svg {
+      transform: rotate(180deg);
+      color: var(--neon-emerald);
+    }
+
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), padding 0.35s ease;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      padding: 0 1.5rem;
+    }
+
+    .accordion-item.active .accordion-content {
+      max-height: 250px;
+      padding: 0.5rem 1.5rem 1.5rem;
+    }
+
+    /* ==========================================================================
+       15. DYNAMIC ISLAND FLOATING DOCK & CONTROLS (Kokonut UI)
+       ========================================================================== */
+    .dock-container {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+    }
+
+    .dynamic-island-dock {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(10, 11, 16, 0.92);
+      backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      padding: 0.6rem 0.85rem;
+      border-radius: var(--radius-full);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 1px rgba(255, 255, 255, 0.3);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .dynamic-island-dock:hover {
+      border-color: rgba(0, 255, 136, 0.4);
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.95), 0 0 25px var(--neon-emerald-glow);
+    }
+
+    .dock-btn {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-full);
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.25s ease, color 0.25s ease;
+    }
+
+    .dock-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 1.8;
+    }
+
+    .dock-btn:hover {
+      transform: translateY(-8px) scale(1.15);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--neon-emerald);
+    }
+
+    .dock-btn.active {
+      color: var(--neon-emerald);
+      background: rgba(0, 255, 136, 0.12);
+    }
+
+    .dock-tooltip {
+      position: absolute;
+      top: -38px;
+      left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      background: #141724;
+      color: #ffffff;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .dock-btn:hover .dock-tooltip {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .dock-divider {
+      width: 1px;
+      height: 22px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 0 0.25rem;
+    }
+
+    /* 16. AI Command Bar / Search Modal (Kokonut UI) */
+    .cmd-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 5, 8, 0.85);
+      backdrop-filter: blur(16px);
+      z-index: 10050;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .cmd-modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .cmd-modal-box {
+      width: 90%;
+      max-width: 640px;
+      background: #0d0e15;
+      border: 1px solid var(--neon-emerald);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.9), 0 0 35px var(--neon-emerald-glow);
+      overflow: hidden;
+      transform: scale(0.95);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .cmd-modal-backdrop.open .cmd-modal-box {
+      transform: scale(1);
+    }
+
+    .cmd-input-row {
+      display: flex;
+      align-items: center;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 1rem;
+    }
+
+    .cmd-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #ffffff;
+      font-family: var(--font-tech);
+      font-size: 1.15rem;
+    }
+
+    .cmd-results-list {
+      padding: 1rem;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .cmd-item {
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-family: var(--font-tech);
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+
+    .cmd-item:hover {
+      background: rgba(0, 255, 136, 0.1);
+      color: var(--neon-emerald);
+    }
+
+    /* 21. Action Speed Dial / Floating Quick Trigger (Kokonut UI) */
+    .speed-dial {
+      position: fixed;
+      bottom: 2rem;
+      right: 2.5rem;
+      z-index: 999;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .speed-dial-trigger {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      transition: transform 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .speed-dial-trigger.open {
+      transform: rotate(45deg);
+      border-color: var(--neon-cyan);
+    }
+
+    .speed-dial-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(15px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .speed-dial-menu.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .speed-dial-sub-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .speed-dial-sub-btn:hover {
+      border-color: var(--neon-emerald);
+      color: var(--neon-emerald);
+      transform: scale(1.1);
+    }
+
+    /* 30. Circular Scroll-To-Top Progress Indicator (Creative Design) */
+    .scroll-top-btn {
+      position: fixed;
+      bottom: 2rem;
+      left: 2.5rem;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 999;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      transition: transform 0.3s ease;
+    }
+
+    .scroll-top-btn:hover {
+      transform: translateY(-5px);
+    }
+
+    .scroll-svg-ring {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .scroll-svg-circle {
+      fill: none;
+      stroke: var(--neon-emerald);
+      stroke-width: 3;
+      stroke-dasharray: 145;
+      stroke-dashoffset: 145;
+      transition: stroke-dashoffset 0.1s linear;
+    }
+
+    /* 29. Expandable Technical Blueprint Modal (Creative Design) */
+    .blueprint-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(20px);
+      z-index: 10100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+
+    .blueprint-modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .blueprint-box {
+      width: 90%;
+      max-width: 840px;
+      max-height: 85vh;
+      overflow-y: auto;
+      background: #090a10;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 3.5rem;
+      position: relative;
+    }
+
+    .blueprint-close {
+      position: absolute;
+      top: 1.75rem;
+      right: 1.75rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.5rem;
+      transition: color 0.2s ease;
+    }
+
+    .blueprint-close:hover {
+      color: var(--neon-emerald);
+    }
+
+    footer {
+      padding: 6rem 0 12rem;
+      text-align: center;
+      border-top: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 1024px) {
+      .bento-grid { grid-template-columns: 1fr; }
+      .col-span-8, .col-span-4, .col-span-6 { grid-column: span 1; }
+      .module-card { flex: 0 0 380px; height: 560px; }
+    }
+
+    @media (max-width: 768px) {
+      header { padding: 1.25rem 1.5rem; }
+      .module-card { flex: 0 0 300px; height: 500px; padding: 1.75rem; }
+      .deck-card { padding: 2rem; }
+      .speed-dial, .scroll-top-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 23. Procedural SVG Film Grain Overlay (Creative Design) -->
+  <svg class="film-grain-overlay" xmlns="http://www.w3.org/2000/svg">
+    <filter id="film-grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 1 0"/>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#film-grain)"></rect>
+  </svg>
+
+  <!-- 2. Scroll Progress Bar (GSAP) -->
+  <div id="scroll-progress-bar"></div>
+
+  <!-- 13. Custom Smooth Follower Cursor (React Bits) -->
+  <div id="cursor-follower"></div>
+  <div id="cursor-dot"></div>
+
+  <!-- 8. Interactive Canvas Particle Wave (React Bits) -->
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- HEADER -->
+  <header>
+    <a href="#hero" class="brand-wrap">
+      <div class="brand-logo-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      </div>
+      <span class="brand-title">NEXUS QUANTUM</span>
+    </a>
+
+    <!-- 18. Live Status Beacon Pill (Kokonut UI) -->
+    <div class="status-beacon-pill">
+      <div class="status-beacon-radar">
+        <div class="status-beacon-dot"></div>
+        <div class="status-beacon-wave"></div>
+      </div>
+      <!-- 11. Shiny Gradient Shimmer Text (React Bits) -->
+      <span class="shiny-text">SYNAPSE CLUSTER ONLINE // 2026</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO SECTION -->
+    <section class="hero-section" id="hero">
+      <!-- 5. Parallax Background Layering -->
+      <div class="parallax-layer parallax-grid-bg" id="hero-parallax-bg"></div>
+
+      <div class="hero-eyebrow">
+        <span>BIO-ROBOTICS RESEARCH</span>
+        <span>//</span>
+        <span>QUANTUM NEURAL INTERFACE</span>
+      </div>
+
+      <!-- 24. Monumental Typography & 3. Kinetic Staggered Headline (GSAP) -->
+      <h1 class="hero-title" id="hero-kinetic">
+        <span class="char">N</span><span class="char">E</span><span class="char">X</span><span class="char">U</span><span class="char">S</span>
+        <span>&nbsp;</span>
+        <span class="char accent-char">Q</span><span class="char accent-char">U</span><span class="char accent-char">A</span><span class="char accent-char">N</span><span class="char accent-char">T</span><span class="char accent-char">U</span><span class="char accent-char">M</span>
+      </h1>
+
+      <!-- 7. Matrix Decrypted Text Badge (React Bits) -->
+      <div>
+        <div class="decrypted-badge" id="decrypted-tag" data-original="DECODING NEURAL FREQUENCIES THROUGH QUANTUM ENTANGLED INTERFACES">
+          <span class="text-inner">DECODING NEURAL FREQUENCIES THROUGH QUANTUM ENTANGLED INTERFACES</span>
+          <span class="decrypted-hint">HOVER TO DECRYPT</span>
+        </div>
+      </div>
+
+      <!-- 14. Blur-to-Sharp Text Reveal -->
+      <p class="section-subtext blur-reveal" id="hero-desc" style="margin: 2.5rem auto 0; text-align: center;">
+        We engineer synthetic biological kinematics and quantum synapse architectures, achieving zero-latency bio-mechanical neural control.
+      </p>
+
+      <!-- 10. Magnetic Physics Buttons (React Bits) -->
+      <div class="hero-cta-group">
+        <button class="magnetic-btn" id="explore-modules-btn">
+          Explore Robotic Rail
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+        <button class="magnetic-btn magnetic-btn-outline" id="open-cmd-btn">
+          Command Terminal (⌘K)
+        </button>
+      </div>
+    </section>
+
+    <!-- 26. Infinite Kinetic Marquee Ribbon (Creative Design) -->
+    <div class="marquee-wrapper">
+      <div class="marquee-track">
+        <div class="marquee-item"><span class="highlight">NEURAL SYNC</span> 99.98%</div>
+        <div class="marquee-item"><span class="highlight">LATENCY</span> 0.02ms</div>
+        <div class="marquee-item"><span class="highlight">MYOMER FORCE</span> 4,800N</div>
+        <div class="marquee-item"><span class="highlight">TACHYON CORE</span> FLUX STABLE</div>
+        <div class="marquee-item"><span class="highlight">BIO-ELECTRODE</span> 128,000 NODES</div>
+        <!-- Duplicate for loop -->
+        <div class="marquee-item"><span class="highlight">NEURAL SYNC</span> 99.98%</div>
+        <div class="marquee-item"><span class="highlight">LATENCY</span> 0.02ms</div>
+        <div class="marquee-item"><span class="highlight">MYOMER FORCE</span> 4,800N</div>
+        <div class="marquee-item"><span class="highlight">TACHYON CORE</span> FLUX STABLE</div>
+        <div class="marquee-item"><span class="highlight">BIO-ELECTRODE</span> 128,000 NODES</div>
+      </div>
+    </div>
+
+    <!-- 4. PINNED HORIZONTAL RAIL SHOWCASE (GSAP ScrollTrigger) -->
+    <section class="horizontal-showcase" id="modules">
+      <div class="horizontal-track-container" id="horizontal-track-container">
+        <div class="horizontal-track" id="horizontal-track">
+          
+          <!-- Card 1: 12. 3D Tilt Card Perspective -->
+          <div class="module-card tilt-card" data-blueprint="exo-spine">
+            <div>
+              <span class="module-tag">// SYSTEM 01 : KINEMATICS</span>
+              <div class="module-visual">
+                <svg class="module-vector-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+            </div>
+            <div>
+              <h3 class="module-title">NEURAL EXO-SPINE</h3>
+              <p class="module-desc">Dynamic multi-vertebral articulation rig driven by carbon nanotube artificial muscle fibers.</p>
+              <!-- 6. Number Ticker Counters -->
+              <div class="module-metrics">
+                <div>
+                  <div class="metric-val" data-counter="12400">0</div>
+                  <div class="metric-lbl">Neural Nodes</div>
+                </div>
+                <div>
+                  <div class="metric-val" data-counter="99">0</div>
+                  <div class="metric-lbl">% Sync Ratio</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="module-card tilt-card" data-blueprint="quantum-synapse">
+            <div>
+              <span class="module-tag">// SYSTEM 02 : COMPUTATION</span>
+              <div class="module-visual">
+                <svg class="module-vector-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6Z"/></svg>
+              </div>
+            </div>
+            <div>
+              <h3 class="module-title">QUANTUM SYNAPSE</h3>
+              <p class="module-desc">Superconducting Josephson junction mesh processing 10 million parallel neural spikes.</p>
+              <div class="module-metrics">
+                <div>
+                  <div class="metric-val" data-counter="320">0</div>
+                  <div class="metric-lbl">TFLOPS Bio-Compute</div>
+                </div>
+                <div>
+                  <div class="metric-val" data-counter="0.02">0</div>
+                  <div class="metric-lbl">ms Response</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="module-card tilt-card" data-blueprint="bio-myomer">
+            <div>
+              <span class="module-tag">// SYSTEM 03 : ACTUATION</span>
+              <div class="module-visual">
+                <svg class="module-vector-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              </div>
+            </div>
+            <div>
+              <h3 class="module-title">BIO-MYOMER ACTUATOR</h3>
+              <p class="module-desc">Electro-active polymer bundles offering 40x the mechanical energy density of mammalian muscle.</p>
+              <div class="module-metrics">
+                <div>
+                  <div class="metric-val" data-counter="4800">0</div>
+                  <div class="metric-lbl">Newtons Peak Force</div>
+                </div>
+                <div>
+                  <div class="metric-val" data-counter="100">0</div>
+                  <div class="metric-lbl">% Bionic Efficiency</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="module-card tilt-card" data-blueprint="tachyon-core">
+            <div>
+              <span class="module-tag">// SYSTEM 04 : TELEMETRY</span>
+              <div class="module-visual">
+                <svg class="module-vector-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+              </div>
+            </div>
+            <div>
+              <h3 class="module-title">TACHYON HARVESTER</h3>
+              <p class="module-desc">Non-equilibrium resonant core converting ambient electromagnetic noise into continuous power.</p>
+              <div class="module-metrics">
+                <div>
+                  <div class="metric-val" data-counter="1200">0</div>
+                  <div class="metric-lbl">Watts Sustained</div>
+                </div>
+                <div>
+                  <div class="metric-val" data-counter="4">0</div>
+                  <div class="metric-lbl">Quantum Cells</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 17. BENTO GRID ARCHITECTURE & 9. SPOTLIGHT CARDS (Kokonut UI) -->
+    <section class="section-padding" id="capabilities">
+      <div class="container">
+        <span class="section-eyebrow">// QUANTUM DISCIPLINES</span>
+        <h2 class="section-heading">LABORATORY CAPABILITIES</h2>
+        <p class="section-subtext">Each discipline represents a breakthrough in artificial biology, quantum kinematics, and neural synthesis.</p>
+
+        <div class="bento-grid">
+          <!-- Bento Item 1: 9. Spotlight Card -->
+          <div class="spotlight-card col-span-8" style="--spotlight-color: rgba(0, 255, 136, 0.32);">
+            <div>
+              <span class="bento-badge">RESEARCH PILLAR 01</span>
+              <h3 class="bento-title">Spatial Neural Resonance & Dynamics</h3>
+              <p class="bento-desc">Mapping complex cortical oscillation waves into high-dimensional vector spaces for non-invasive motor prosthetics.</p>
+              
+              <!-- 19. Segmented Tab Switcher (Kokonut UI) -->
+              <div class="segmented-tabs" id="division-tabs">
+                <button class="tab-btn active" data-division="bio">Bio-Mechanics</button>
+                <button class="tab-btn" data-division="neural">Neural Link</button>
+                <button class="tab-btn" data-division="quantum">Quantum Field</button>
+                <div class="tab-slider-pill" id="tab-slider-pill"></div>
+              </div>
+            </div>
+
+            <!-- 20. Interactive Spring Toggle Switches (Kokonut UI) -->
+            <div class="toggle-row">
+              <div>
+                <strong style="display:block; font-family: var(--font-tech);">Neural Overdrive Acceleration</strong>
+                <span style="font-size: 0.85rem; color: var(--text-muted);">Double sampling clock for sub-millisecond reaction</span>
+              </div>
+              <div class="toggle-switch" id="overdrive-toggle">
+                <div class="toggle-handle"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bento Item 2: Spotlight Card -->
+          <div class="spotlight-card col-span-4" style="--spotlight-color: rgba(0, 240, 255, 0.35);">
+            <div>
+              <span class="bento-badge">RESEARCH PILLAR 02</span>
+              <h3 class="bento-title">Frequency Matrix</h3>
+              <p class="bento-desc">Continuous feedback loop tuning resonant micro-oscillators.</p>
+            </div>
+
+            <!-- 22. Interactive Parameter Scrub Slider (Kokonut UI) -->
+            <div class="slider-box">
+              <div class="slider-header">
+                <span>Resonance Freq:</span>
+                <span id="slider-val-display" style="color: var(--neon-cyan); font-weight: 700;">432 Hz</span>
+              </div>
+              <input type="range" min="100" max="1000" value="432" class="slider-input" id="resonance-slider">
+            </div>
+          </div>
+
+          <!-- Bento Item 3: Spotlight Card -->
+          <div class="spotlight-card col-span-4" style="--spotlight-color: rgba(168, 85, 247, 0.35);">
+            <div>
+              <span class="bento-badge">RESEARCH PILLAR 03</span>
+              <h3 class="bento-title">Synthetic Genome</h3>
+              <p class="bento-desc">Algorithmic protein folding generating self-healing cybernetic skins.</p>
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 2.2rem; color: var(--neon-violet); font-weight: 700;">
+              100% SYNTHETIC
+            </div>
+          </div>
+
+          <!-- Bento Item 4: Spotlight Card -->
+          <div class="spotlight-card col-span-8" style="--spotlight-color: rgba(0, 255, 136, 0.32);">
+            <div>
+              <span class="bento-badge">RESEARCH PILLAR 04</span>
+              <h3 class="bento-title">Autonomous Micro-Actuation Array</h3>
+              <p class="bento-desc">Over 500,000 sub-micron piezoelectric actuators cooperating in synchronized fluidic waves to mimic cephalopod camouflage and hydrodynamic locomotion.</p>
+            </div>
+            <div style="display: flex; gap: 2rem; margin-top: 1.5rem;">
+              <div>
+                <span style="font-family: var(--font-mono); font-size: 2rem; color: #fff; font-weight: 700;">500K+</span>
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Micro-Actuators</div>
+              </div>
+              <div>
+                <span style="font-family: var(--font-mono); font-size: 2rem; color: var(--neon-emerald); font-weight: 700;">0.001 mm</span>
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Resolution</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 25. OLLIVERE PINNED STACKED CARD DECK (Creative Web Design) -->
+    <section class="deck-section" id="specs">
+      <div class="container">
+        <span class="section-eyebrow">// OPERATIONAL PHASES</span>
+        <h2 class="section-heading">DEPLOYMENT TIMELINE</h2>
+        <p class="section-subtext">Observe the cards pin and scale down sequentially as you scroll through the deployment phases.</p>
+
+        <div class="deck-container">
+          <!-- Deck Card 1 -->
+          <div class="deck-card deck-card-1">
+            <div class="deck-card-top">
+              <span style="font-family: var(--font-mono); color: var(--neon-emerald); letter-spacing: 0.2em;">PHASE 01 // CALIBRATION</span>
+              <span class="deck-num">01</span>
+            </div>
+            <h3 class="deck-title">Electrophysiological Neural Mapping</h3>
+            <p class="deck-body">We establish an ultra-dense array of biocompatible carbon electrodes across motor and sensory cortex paths, achieving millisecond-level telemetry without inflammatory rejection.</p>
+          </div>
+
+          <!-- Deck Card 2 -->
+          <div class="deck-card deck-card-2">
+            <div class="deck-card-top">
+              <span style="font-family: var(--font-mono); color: var(--neon-cyan); letter-spacing: 0.2em;">PHASE 02 // SYNTHESIS</span>
+              <span class="deck-num">02</span>
+            </div>
+            <h3 class="deck-title">Quantum State Coupling</h3>
+            <p class="deck-body">Cryogenic qubit registers bind to the neural encoder via high-speed optical fiber interfaces, running real-time quantum error correction on noisy biological inputs.</p>
+          </div>
+
+          <!-- Deck Card 3 -->
+          <div class="deck-card deck-card-3">
+            <div class="deck-card-top">
+              <span style="font-family: var(--font-mono); color: var(--neon-violet); letter-spacing: 0.2em;">PHASE 03 // EMBODIMENT</span>
+              <span class="deck-num">03</span>
+            </div>
+            <h3 class="deck-title">Autonomous Bionic Kinematics</h3>
+            <p class="deck-body">Final integration into physical titanium-graphene skeletal armatures. Actuators respond synchronously with subconscious human intent with sub-0.02ms latency.</p>
+            
+            <!-- 27. Technical Accordion / Disclosure Drawer -->
+            <div class="accordion-wrap">
+              <div class="accordion-item">
+                <button class="accordion-trigger">
+                  <span>Deep Mechanical Specifications</span>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="accordion-content">
+                  Torque output: 650 Nm per joint. Max angular acceleration: 12,000 deg/s². Operating temperature envelope: -40°C to +85°C with self-regulating fluidic jacket cooling.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <p>© 2026 NEXUS QUANTUM RESEARCH INITIATIVE. ALL RIGHTS RESERVED.</p>
+        <p style="margin-top: 0.5rem; opacity: 0.6;">POWERED BY GSAP 3, LENIS, REACT BITS, KOKONUT UI & PROCEDURAL SHADERS.</p>
+      </div>
+    </footer>
+  </main>
+
+  <!-- 15. DYNAMIC ISLAND FLOATING DOCK (Kokonut UI) -->
+  <div class="dock-container">
+    <nav class="dynamic-island-dock" aria-label="Quick Nav">
+      <a href="#hero" class="dock-btn active" data-target="hero" aria-label="Hero">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="dock-tooltip">Nexus Home</span>
+      </a>
+
+      <a href="#modules" class="dock-btn" data-target="modules" aria-label="Modules">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+        <span class="dock-tooltip">Robotic Rail</span>
+      </a>
+
+      <a href="#capabilities" class="dock-btn" data-target="capabilities" aria-label="Capabilities">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        <span class="dock-tooltip">Bento Grid</span>
+      </a>
+
+      <a href="#specs" class="dock-btn" data-target="specs" aria-label="Specs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span class="dock-tooltip">Timeline Deck</span>
+      </a>
+
+      <div class="dock-divider"></div>
+
+      <button class="dock-btn" id="dock-cmd-btn" aria-label="Terminal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span class="dock-tooltip">Launch AI (⌘K)</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- 16. AI Command Bar / Search Modal (Kokonut UI) -->
+  <div class="cmd-modal-backdrop" id="cmd-modal">
+    <div class="cmd-modal-box">
+      <div class="cmd-input-row">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" color="var(--neon-emerald)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" class="cmd-input" id="cmd-search-input" placeholder="Query quantum neural systems, protocols, or commands...">
+        <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); background: rgba(255,255,255,0.06); padding: 0.2rem 0.5rem; border-radius: 4px;">ESC to close</span>
+      </div>
+      <div class="cmd-results-list">
+        <div class="cmd-item" data-action="calibrate">
+          <span>✦ Calibrate Neural Spine Articulation</span>
+          <span style="font-size: 0.75rem; color: var(--neon-emerald);">RUN</span>
+        </div>
+        <div class="cmd-item" data-action="overdrive">
+          <span>✦ Toggle Sub-Millisecond Overdrive</span>
+          <span style="font-size: 0.75rem; color: var(--neon-cyan);">EXEC</span>
+        </div>
+        <div class="cmd-item" data-action="export">
+          <span>✦ Export Complete 2026 Telemetry Stream</span>
+          <span style="font-size: 0.75rem; color: var(--neon-violet);">DATA</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 21. Action Speed Dial / Floating Quick Trigger (Kokonut UI) -->
+  <div class="speed-dial">
+    <button class="speed-dial-trigger" id="speed-dial-btn" aria-label="Speed Dial">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+    <div class="speed-dial-menu" id="speed-dial-menu">
+      <button class="speed-dial-sub-btn" id="sound-toggle-btn" title="Toggle Synthetic Audio Feedback">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      </button>
+      <button class="speed-dial-sub-btn" id="blueprint-btn" title="Inspect Blueprints">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 30. Circular Scroll-To-Top Progress Indicator (Creative Design) -->
+  <button class="scroll-top-btn" id="scroll-top-btn" aria-label="Scroll to top">
+    <svg class="scroll-svg-ring" viewBox="0 0 50 50">
+      <circle cx="25" cy="25" r="23" class="scroll-svg-circle" id="scroll-circle"></circle>
+    </svg>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <!-- 29. Expandable Technical Blueprint Modal (Creative Design) -->
+  <div class="blueprint-modal-backdrop" id="blueprint-modal">
+    <div class="blueprint-box">
+      <button class="blueprint-close" id="blueprint-close">&times;</button>
+      <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--neon-emerald); letter-spacing: 0.2em;">SYSTEM SCHEMATIC // NEXUS-2026</span>
+      <h2 style="font-family: var(--font-display); font-size: 2.5rem; margin: 0.5rem 0 1.5rem;">QUANTUM BIOROBOTICS CORE SPECIFICATION</h2>
+      <p style="color: var(--text-muted); line-height: 1.7; margin-bottom: 2rem;">
+        Complete architectural blueprint detailing the micro-piezoelectric actuation grid, superconducting Josephson junctions, and high-tensile carbon fiber armature joints.
+      </p>
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); padding: 1.5rem; border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 0.85rem; color: var(--neon-cyan);">
+        [TELEMETRY BUFFER]<br>
+        &gt; ARCHITECTURE: Hybrid Bio-Inorganic Synapse<br>
+        &gt; BUS CLOCK: 4.8 GHz Superconducting RF<br>
+        &gt; SAFETY INTERLOCK: Bi-Directional Shunt Active<br>
+        &gt; CRYOGENIC STATUS: 4.2 Kelvin Nominal
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       ALL JAVASCRIPT: LENIS, GSAP, REACT BITS, KOKONUT, PROCEDURAL AUDIO
+       ========================================================================== */ -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. LENIS SMOOTH SCROLL & GSAP TICKER (gsap-lenis-motion)
+      gsap.registerPlugin(ScrollTrigger);
+
+      const lenis = new Lenis({
+        duration: 1.25,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smoothWheel: true
+      });
+
+      lenis.on('scroll', ScrollTrigger.update);
+      gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+      gsap.ticker.lagSmoothing(0);
+
+      // Smooth anchor scroll
+      document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const target = document.querySelector(a.getAttribute('href'));
+          if (target) lenis.scrollTo(target, { duration: 1.4 });
+        });
+      });
+
+      // 2. GSAP SCROLL PROGRESS BAR
+      gsap.to('#scroll-progress-bar', {
+        width: '100%',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: document.body,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 0.2
+        }
+      });
+
+      // 30. CIRCULAR SCROLL-TO-TOP INDICATOR
+      const scrollCircle = document.getElementById('scroll-circle');
+      const scrollTopBtn = document.getElementById('scroll-top-btn');
+      const totalCircumference = 145; // 2 * PI * 23
+
+      window.addEventListener('scroll', () => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = Math.min(1, Math.max(0, scrollTop / docHeight));
+        scrollCircle.style.strokeDashoffset = totalCircumference * (1 - progress);
+      });
+
+      scrollTopBtn.addEventListener('click', () => {
+        lenis.scrollTo(0, { duration: 1.5 });
+      });
+
+      // 28. PROCEDURAL WEB AUDIO ENGINE (Creative Web Design)
+      let audioCtx = null;
+      let soundEnabled = true;
+
+      function playCyberTone(freq = 880, type = 'sine', duration = 0.08) {
+        if (!soundEnabled) return;
+        try {
+          if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + duration);
+        } catch(e) {}
+      }
+
+      // Attach audio feedback
+      document.querySelectorAll('button, a, .tab-btn, .cmd-item').forEach(el => {
+        el.addEventListener('mouseenter', () => playCyberTone(1200, 'triangle', 0.04));
+        el.addEventListener('click', () => playCyberTone(600, 'sine', 0.1));
+      });
+
+      // 13. CUSTOM SMOOTH FOLLOWER CURSOR (React Bits)
+      const follower = document.getElementById('cursor-follower');
+      const dot = document.getElementById('cursor-dot');
+      let mouseX = window.innerWidth / 2;
+      let mouseY = window.innerHeight / 2;
+      let followerX = mouseX;
+      let followerY = mouseY;
+
+      window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        dot.style.left = `${mouseX}px`;
+        dot.style.top = `${mouseY}px`;
+      });
+
+      function animateCursor() {
+        followerX += (mouseX - followerX) * 0.18;
+        followerY += (mouseY - followerY) * 0.18;
+        follower.style.left = `${followerX}px`;
+        follower.style.top = `${followerY}px`;
+        requestAnimationFrame(animateCursor);
+      }
+      animateCursor();
+
+      document.querySelectorAll('a, button, input, .spotlight-card, .module-card').forEach(el => {
+        el.addEventListener('mouseenter', () => follower.classList.add('cursor-hover'));
+        el.addEventListener('mouseleave', () => follower.classList.remove('cursor-hover'));
+      });
+
+      // 8. INTERACTIVE CANVAS PARTICLE WAVE (React Bits)
+      const canvas = document.getElementById('particle-canvas');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      const PARTICLE_COUNT = 75;
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: (Math.random() - 0.5) * 0.8,
+          radius: Math.random() * 2 + 1
+        });
+      }
+
+      function renderParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+
+          if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+          if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+          // Mouse proximity repulsion
+          const dx = mouseX - p.x;
+          const dy = mouseY - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 140) {
+            p.x -= (dx / dist) * 2;
+            p.y -= (dy / dist) * 2;
+          }
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(0, 255, 136, 0.35)';
+          ctx.fill();
+
+          // Neural connections between nearby particles
+          for (let j = i + 1; j < particles.length; j++) {
+            const p2 = particles[j];
+            const d2 = Math.hypot(p.x - p2.x, p.y - p2.y);
+            if (d2 < 110) {
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.strokeStyle = `rgba(0, 240, 255, ${0.2 * (1 - d2 / 110)})`;
+              ctx.lineWidth = 0.8;
+              ctx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(renderParticles);
+      }
+      renderParticles();
+
+      // 3. HERO KINETIC TYPOGRAPHY (GSAP)
+      gsap.to('.hero-eyebrow', { opacity: 1, y: 0, duration: 1, delay: 0.2 });
+      gsap.from('#hero-kinetic .char', {
+        y: 130,
+        rotateX: -65,
+        opacity: 0,
+        duration: 1.2,
+        stagger: 0.04,
+        ease: 'back.out(1.4)'
+      });
+
+      // 14. BLUR-TO-SHARP TEXT REVEAL
+      setTimeout(() => {
+        document.getElementById('hero-desc').classList.add('revealed');
+      }, 700);
+
+      // 5. PARALLAX LAYERING
+      gsap.to('#hero-parallax-bg', {
+        yPercent: 30,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#hero',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true
+        }
+      });
+
+      // 7. MATRIX DECRYPTED TEXT (React Bits)
+      const decryptTag = document.getElementById('decrypted-tag');
+      const textInner = decryptTag.querySelector('.text-inner');
+      const originalText = decryptTag.getAttribute('data-original');
+      const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*<>_+-=";
+      let decryptTimer = null;
+
+      function runDecryption() {
+        let iter = 0;
+        clearInterval(decryptTimer);
+        decryptTimer = setInterval(() => {
+          textInner.innerText = originalText.split("").map((ch, idx) => {
+            if (idx < iter) return originalText[idx];
+            if (ch === " ") return " ";
+            return matrixChars[Math.floor(Math.random() * matrixChars.length)];
+          }).join("");
+
+          if (iter >= originalText.length) clearInterval(decryptTimer);
+          iter += 1;
+        }, 22);
+      }
+      decryptTag.addEventListener('mouseenter', runDecryption);
+      decryptTag.addEventListener('click', runDecryption);
+
+      // 10. MAGNETIC PHYSICS BUTTONS (React Bits)
+      document.querySelectorAll('.magnetic-btn').forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+          const rect = btn.getBoundingClientRect();
+          const x = e.clientX - rect.left - rect.width / 2;
+          const y = e.clientY - rect.top - rect.height / 2;
+          btn.style.transform = `translate(${x * 0.35}px, ${y * 0.35}px)`;
+        });
+        btn.addEventListener('mouseleave', () => {
+          btn.style.transform = 'translate(0px, 0px)';
+        });
+      });
+
+      // 4. PINNED HORIZONTAL RAIL SHOWCASE (GSAP ScrollTrigger)
+      const hTrack = document.getElementById('horizontal-track');
+      function getHScrollAmount() {
+        return hTrack.scrollWidth - window.innerWidth;
+      }
+
+      gsap.to(hTrack, {
+        x: () => -getHScrollAmount(),
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '.horizontal-showcase',
+          start: 'top top',
+          end: () => `+=${getHScrollAmount()}`,
+          pin: true,
+          scrub: 1,
+          invalidateOnRefresh: true
+        }
+      });
+
+      // 12. 3D TILT CARD PERSPECTIVE (React Bits)
+      document.querySelectorAll('.tilt-card').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = (e.clientX - rect.left) / rect.width - 0.5;
+          const y = (e.clientY - rect.top) / rect.height - 0.5;
+          card.style.transform = `perspective(1000px) rotateY(${x * 16}deg) rotateX(${-y * 16}deg) translateY(-8px)`;
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'perspective(1000px) rotateY(0deg) rotateX(0deg) translateY(0px)';
+        });
+      });
+
+      // 6. DYNAMIC NUMBER TICKER COUNTERS (GSAP)
+      document.querySelectorAll('.metric-val').forEach(el => {
+        const targetVal = parseFloat(el.getAttribute('data-counter'));
+        gsap.to(el, {
+          innerHTML: targetVal,
+          duration: 2,
+          snap: { innerText: targetVal % 1 === 0 ? 1 : 0.01 },
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 85%'
+          }
+        });
+      });
+
+      // 9. SPOTLIGHT CARDS RADIAL GLOW (React Bits)
+      document.querySelectorAll('.spotlight-card').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+          card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+        });
+      });
+
+      // 19. SEGMENTED TAB SWITCHER (Kokonut UI)
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabSlider = document.getElementById('tab-slider-pill');
+      function updateTabSlider(btn) {
+        tabSlider.style.width = `${btn.offsetWidth}px`;
+        tabSlider.style.left = `${btn.offsetLeft}px`;
+      }
+      if (tabBtns.length > 0) updateTabSlider(tabBtns[0]);
+
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          updateTabSlider(btn);
+          playCyberTone(900, 'sine', 0.06);
+        });
+      });
+
+      // 20. INTERACTIVE SPRING TOGGLE SWITCH (Kokonut UI)
+      const overdriveToggle = document.getElementById('overdrive-toggle');
+      overdriveToggle.addEventListener('click', () => {
+        overdriveToggle.classList.toggle('active');
+        playCyberTone(overdriveToggle.classList.contains('active') ? 1400 : 700, 'sawtooth', 0.1);
+      });
+
+      // 22. PARAMETER SCRUB SLIDER (Kokonut UI)
+      const resSlider = document.getElementById('resonance-slider');
+      const resDisplay = document.getElementById('slider-val-display');
+      resSlider.addEventListener('input', (e) => {
+        const val = e.target.value;
+        resDisplay.innerText = `${val} Hz`;
+        playCyberTone(val * 1.5, 'sine', 0.03);
+      });
+
+      // 25. OLLIVERE PINNED STACKED CARDS (Creative Design)
+      const deckCards = document.querySelectorAll('.deck-card');
+      deckCards.forEach((card, idx) => {
+        if (idx < deckCards.length - 1) {
+          gsap.to(card, {
+            scale: 0.92 - idx * 0.03,
+            filter: 'brightness(0.65)',
+            scrollTrigger: {
+              trigger: deckCards[idx + 1],
+              start: 'top 75%',
+              end: 'top 18%',
+              scrub: true
+            }
+          });
+        }
+      });
+
+      // 27. TECHNICAL ACCORDION DRAWER (Creative Design)
+      document.querySelectorAll('.accordion-trigger').forEach(trigger => {
+        trigger.addEventListener('click', () => {
+          const item = trigger.closest('.accordion-item');
+          item.classList.toggle('active');
+          playCyberTone(800, 'sine', 0.05);
+        });
+      });
+
+      // 16. AI COMMAND BAR MODAL (Kokonut UI)
+      const cmdModal = document.getElementById('cmd-modal');
+      const cmdInput = document.getElementById('cmd-search-input');
+      function toggleCmdModal(open) {
+        cmdModal.classList.toggle('open', open);
+        if (open) setTimeout(() => cmdInput.focus(), 100);
+      }
+
+      document.getElementById('open-cmd-btn').addEventListener('click', () => toggleCmdModal(true));
+      document.getElementById('dock-cmd-btn').addEventListener('click', () => toggleCmdModal(true));
+
+      window.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          toggleCmdModal(!cmdModal.classList.contains('open'));
+        }
+        if (e.key === 'Escape') {
+          toggleCmdModal(false);
+          document.getElementById('blueprint-modal').classList.remove('open');
+        }
+      });
+
+      cmdModal.addEventListener('click', (e) => {
+        if (e.target === cmdModal) toggleCmdModal(false);
+      });
+
+      document.querySelectorAll('.cmd-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const act = item.getAttribute('data-action');
+          toggleCmdModal(false);
+          runDecryption();
+          playCyberTone(1500, 'sawtooth', 0.12);
+        });
+      });
+
+      // 21. SPEED DIAL (Kokonut UI)
+      const speedDialBtn = document.getElementById('speed-dial-btn');
+      const speedDialMenu = document.getElementById('speed-dial-menu');
+      speedDialBtn.addEventListener('click', () => {
+        speedDialBtn.classList.toggle('open');
+        speedDialMenu.classList.toggle('open');
+      });
+
+      document.getElementById('sound-toggle-btn').addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        playCyberTone(soundEnabled ? 1200 : 400, 'sine', 0.1);
+      });
+
+      // 29. BLUEPRINT MODAL (Creative Design)
+      const bpModal = document.getElementById('blueprint-modal');
+      const openBp = () => bpModal.classList.add('open');
+      document.getElementById('blueprint-btn').addEventListener('click', openBp);
+      document.getElementById('blueprint-close').addEventListener('click', () => bpModal.classList.remove('open'));
+      bpModal.addEventListener('click', (e) => {
+        if (e.target === bpModal) bpModal.classList.remove('open');
+      });
+
+      document.querySelectorAll('.module-card').forEach(c => {
+        c.addEventListener('click', openBp);
+      });
+
+      document.getElementById('explore-modules-btn').addEventListener('click', () => {
+        lenis.scrollTo('#modules', { duration: 1.4 });
+      });
+
+      // Active state on dock during scroll
+      window.addEventListener('scroll', () => {
+        const sections = ['hero', 'modules', 'capabilities', 'specs'];
+        let current = 'hero';
+        sections.forEach(id => {
+          const sec = document.getElementById(id);
+          if (sec && sec.getBoundingClientRect().top <= window.innerHeight * 0.4) {
+            current = id;
+          }
+        });
+        document.querySelectorAll('.dock-btn[data-target]').forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-target') === current);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

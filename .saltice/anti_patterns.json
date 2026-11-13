@@ -1,0 +1,23 @@
+[
+  {
+    "id": "ap_glassy_ui",
+    "tag": "Bland / Non-Glassy UI",
+    "constraint": "Never generate flat unstyled white backgrounds or generic cards. Always deliver modern Glassmorphism (backdrop-filter: blur(20px), translucent obsidian rgba(18, 18, 22, 0.75), subtle neon glow, 1px specular borders).",
+    "active": true,
+    "source": "system_guardrail"
+  },
+  {
+    "id": "ap_no_placeholders",
+    "tag": "Placeholder / Truncated Code",
+    "constraint": "Never write placeholder comments (e.g. '/* TODO: add full logic here */') or truncate code with '...'. Always provide 100% complete, runnable code.",
+    "active": true,
+    "source": "system_guardrail"
+  },
+  {
+    "id": "ap_anti_regression",
+    "tag": "Duplicate / Phantom Files",
+    "constraint": "Never create duplicate files or wipe working functionality. Modify existing files surgically using replace_file_content.",
+    "active": true,
+    "source": "system_guardrail"
+  }
+]

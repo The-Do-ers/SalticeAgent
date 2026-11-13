@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AeroGlass &mdash; Inertial Flight Experiment</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    :root {
+      --bg-base: #f8fafc;
+      --glass-bg: rgba(255, 255, 255, 0.45);
+      --glass-border: rgba(255, 255, 255, 0.7);
+      --glass-shadow: 0 20px 50px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --text-faint: rgba(148, 163, 184, 0.28);
+      --accent-glow: rgba(56, 189, 248, 0.25);
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 45%, #cbd5e1 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      color: var(--text-main);
+      cursor: crosshair;
+    }
+
+    /* Ambient soft background lighting */
+    .ambient-glow {
+      position: absolute;
+      top: -15%;
+      left: -10%;
+      width: 65vw;
+      height: 65vh;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(186, 230, 253, 0.55) 0%, rgba(224, 242, 254, 0) 70%);
+      pointer-events: none;
+      filter: blur(80px);
+      z-index: 0;
+    }
+
+    .ambient-glow-2 {
+      position: absolute;
+      bottom: -20%;
+      right: -10%;
+      width: 70vw;
+      height: 70vh;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(221, 214, 254, 0.45) 0%, rgba(243, 232, 255, 0) 70%);
+      pointer-events: none;
+      filter: blur(90px);
+      z-index: 0;
+    }
+
+    /* Subdued background architectural code texture */
+    .code-grid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 3.5rem;
+      padding: 3rem;
+      font-family: "SF Mono", "Fira Code", "Cascadia Code", Menlo, monospace;
+      font-size: 0.72rem;
+      line-height: 1.7;
+      color: var(--text-faint);
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.85;
+      overflow: hidden;
+    }
+
+    .code-block {
+      transform: rotate(-1.5deg);
+    }
+    .code-block:nth-child(even) {
+      transform: rotate(1deg);
+    }
+    .code-accent {
+      color: rgba(99, 102, 241, 0.35);
+    }
+
+    /* Canvas for motion contrail / vapor trail */
+    #trailCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* The Airplane Container */
+    #airplaneContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 44px;
+      height: 44px;
+      pointer-events: none;
+      z-index: 10;
+      transform: translate3d(-100px, -100px, 0);
+      will-change: transform;
+      filter: drop-shadow(0 14px 20px rgba(15, 23, 42, 0.16)) drop-shadow(0 4px 6px rgba(15, 23, 42, 0.08));
+    }
+
+    #airplaneSvg {
+      width: 100%;
+      height: 100%;
+      transform-origin: center center;
+      transition: filter 0.3s ease;
+    }
+
+    /* Minimalist Glass Telemetry HUD */
+    .telemetry-card {
+      position: absolute;
+      top: 2rem;
+      left: 2rem;
+      padding: 0.85rem 1.4rem;
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      box-shadow: var(--glass-shadow);
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      pointer-events: auto;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .telemetry-card:hover {
+      background: rgba(255, 255, 255, 0.65);
+      border-color: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 25px 60px rgba(15, 23, 42, 0.1);
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      transition: background 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .status-dot.idle {
+      background: #6366f1;
+      box-shadow: 0 0 10px #6366f1;
+    }
+
+    .metrics-row {
+      display: flex;
+      gap: 1.25rem;
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    .metric-val {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    /* Subdued Glass Watermark / Hint */
+    .glass-hint {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0.6rem 1.2rem;
+      background: rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      pointer-events: none;
+      z-index: 20;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .pulse-ring {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #0284c7;
+      animation: pulse 2.4s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.9; }
+      50% { transform: scale(1.6); opacity: 0.4; }
+      100% { transform: scale(0.9); opacity: 0.9; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Light Fields -->
+  <div class="ambient-glow"></div>
+  <div class="ambient-glow-2"></div>
+
+  <!-- Decorative Subdued Background Code Texture -->
+  <div class="code-grid" aria-hidden="true">
+    <div class="code-block">
+      <span class="code-accent">// Inertial Flight Vector</span><br>
+      const velocity = new Vector2(vx, vy);<br>
+      const heading = Math.atan2(vy, vx);<br>
+      plane.rotation = slerp(plane.rotation, heading, dt);<br>
+      plane.position.addScaledVector(velocity, friction);
+    </div>
+    <div class="code-block">
+      <span class="code-accent">// Glassmorphic Atmosphere</span><br>
+      backdrop-filter: blur(24px) saturate(160%);<br>
+      background: rgba(255, 255, 255, 0.45);<br>
+      border: 1px solid rgba(255, 255, 255, 0.7);<br>
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.06);
+    </div>
+    <div class="code-block">
+      <span class="code-accent">// Autonomous Cruise Path</span><br>
+      target.x = centerX + Math.cos(time * 0.4) * radiusX;<br>
+      target.y = centerY + Math.sin(time * 0.7) * radiusY;<br>
+      const springAcc = (target - position) * k;<br>
+      velocity += springAcc * delta;
+    </div>
+    <div class="code-block">
+      <span class="code-accent">// Vapor Trail Dynamics</span><br>
+      contrail.push(new Particle({<br>
+      &nbsp;&nbsp;origin: wingtipPosition,<br>
+      &nbsp;&nbsp;decay: 0.024,<br>
+      &nbsp;&nbsp;radius: interpolate(0.8, 3.2, life)<br>
+      }));
+    </div>
+  </div>
+
+  <!-- Vapor / Particle Contrail Canvas -->
+  <canvas id="trailCanvas"></canvas>
+
+  <!-- Physical Airplane Element -->
+  <div id="airplaneContainer">
+    <!-- Sleek Precision Aircraft Silhouette SVG -->
+    <svg id="airplaneSvg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Sleek Fuselage Gradient -->
+        <linearGradient id="fuselageGrad" x1="50" y1="5" x2="50" y2="95" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#38bdf8"/>
+          <stop offset="35%" stop-color="#0284c7"/>
+          <stop offset="100%" stop-color="#0f172a"/>
+        </linearGradient>
+        <!-- Glass Wing Highlight -->
+        <linearGradient id="wingGrad" x1="10" y1="50" x2="90" y2="50" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#0284c7" stop-opacity="0.9"/>
+          <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.95"/>
+          <stop offset="100%" stop-color="#0284c7" stop-opacity="0.9"/>
+        </linearGradient>
+        <!-- Cockpit Canopy Glass -->
+        <linearGradient id="canopyGrad" x1="50" y1="20" x2="50" y2="40" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+          <stop offset="100%" stop-color="#7dd3fc" stop-opacity="0.6"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Main Swept Wings -->
+      <path d="M50 35 L95 62 C96 63 94 65 92 65 L60 60 L50 63 L40 60 L8 65 C6 65 4 63 5 62 Z"
+            fill="url(#wingGrad)" />
+
+      <!-- Wing Trim / Aileron Edge Highlights -->
+      <path d="M50 38 L93 63 L61 61 Z" fill="rgba(255,255,255,0.4)" />
+      <path d="M50 38 L7 63 L39 61 Z" fill="rgba(255,255,255,0.2)" />
+
+      <!-- Horizontal Stabilizers / Tail Wings -->
+      <path d="M50 78 L76 92 C77 92.5 76 94 74.5 94 L56 89 L50 90 L44 89 L25.5 94 C24 94 23 92.5 24 92 Z"
+            fill="#0369a1" />
+
+      <!-- Sleek Aerodynamic Fuselage -->
+      <path d="M50 4 C53 14 55 35 55 70 L53 96 C53 97.5 47 97.5 47 96 L45 70 C45 35 47 14 50 4 Z"
+            fill="url(#fuselageGrad)" />
+
+      <!-- Vertical Fin / Rudder Shadow -->
+      <path d="M50 68 L52 94 L48 94 Z" fill="#0c4a6e" />
+
+      <!-- Glass Cockpit Canopy -->
+      <path d="M50 16 C52.5 20 53.5 26 53 34 C53 36 47 36 47 34 C46.5 26 47.5 20 50 16 Z"
+            fill="url(#canopyGrad)" />
+
+      <!-- Twin Jet Engine Glow Nozzles -->
+      <circle cx="47" cy="94" r="2.2" fill="#38bdf8" filter="drop-shadow(0 0 4px #38bdf8)" />
+      <circle cx="53" cy="94" r="2.2" fill="#38bdf8" filter="drop-shadow(0 0 4px #38bdf8)" />
+    </svg>
+  </div>
+
+  <!-- Minimal Glass Telemetry Card -->
+  <div class="telemetry-card">
+    <div class="status-badge">
+      <div id="statusDot" class="status-dot"></div>
+      <span id="flightModeLabel">Interception Active</span>
+    </div>
+    <div class="metrics-row">
+      <div>SPD <span id="valSpeed" class="metric-val">0.0</span> <span style="font-size: 0.6em; opacity: 0.6;">KT</span></div>
+      <div>HDG <span id="valHeading" class="metric-val">000</span>&deg;</div>
+      <div>LAG <span id="valLag" class="metric-val">0.0</span> <span style="font-size: 0.6em; opacity: 0.6;">PX</span></div>
+    </div>
+  </div>
+
+  <!-- Minimal Glass Footnote -->
+  <div class="glass-hint">
+    <div class="pulse-ring"></div>
+    <span>Move cursor to guide &bull; Idle triggers autonomous cruise</span>
+  </div>
+
+  <script>
+    (function() {
+      'use strict';
+
+      // ─── Canvas & Contrail Setup ────────────────────────────────────────────
+      const canvas = document.getElementById('trailCanvas');
+      const ctx = canvas.getContext('2d');
+      let width = window.innerWidth;
+      let height = window.innerHeight;
+
+      function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width * window.devicePixelRatio;
+        canvas.height = height * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      // ─── Plane DOM & References ─────────────────────────────────────────────
+      const airplaneContainer = document.getElementById('airplaneContainer');
+      const airplaneSvg = document.getElementById('airplaneSvg');
+      const statusDot = document.getElementById('statusDot');
+      const flightModeLabel = document.getElementById('flightModeLabel');
+      const valSpeed = document.getElementById('valSpeed');
+      const valHeading = document.getElementById('valHeading');
+      const valLag = document.getElementById('valLag');
+
+      // ─── Physics & State Variables ──────────────────────────────────────────
+      // Plane starts at center of screen
+      let px = width / 2;
+      let py = height / 2;
+      let vx = 0;
+      let vy = 0;
+      let currentAngle = -Math.PI / 2; // Pointing upwards initially (SVG faces up)
+      let currentBank = 0;
+
+      // Mouse Target
+      let mouseX = width / 2;
+      let mouseY = height / 2;
+      let hasMouseMoved = false;
+      let lastMouseMoveTime = performance.now();
+
+      // Idle Mode Navigation
+      let isIdle = false;
+      let idleTime = 0;
+      let idleAnchorX = width / 2;
+      let idleAnchorY = height / 2;
+
+      // Contrail Particles
+      const particles = [];
+      const MAX_PARTICLES = 160;
+
+      // Particle Class
+      class ContrailParticle {
+        constructor(x, y, angle, speed) {
+          this.x = x;
+          this.y = y;
+          // Eject slightly backwards relative to plane heading
+          const ejectSpread = (Math.random() - 0.5) * 0.4;
+          const ejectSpeed = Math.random() * 0.8 + 0.3;
+          this.vx = -Math.cos(angle + ejectSpread) * ejectSpeed;
+          this.vy = -Math.sin(angle + ejectSpread) * ejectSpeed;
+          this.alpha = 0.55;
+          this.size = Math.random() * 2.5 + 2.0;
+          this.decay = Math.random() * 0.015 + 0.018; // smooth fade
+        }
+
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          this.alpha -= this.decay;
+          this.size += 0.06; // subtle expansion
+          return this.alpha > 0.01;
+        }
+
+        draw(context) {
+          context.beginPath();
+          context.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          context.fillStyle = `rgba(56, 189, 248, ${this.alpha * 0.85})`;
+          context.shadowBlur = 10;
+          context.shadowColor = `rgba(186, 230, 253, ${this.alpha * 0.7})`;
+          context.fill();
+        }
+      }
+
+      // ─── Mouse Input Handlers ───────────────────────────────────────────────
+      window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        hasMouseMoved = true;
+        lastMouseMoveTime = performance.now();
+        if (isIdle) {
+          isIdle = false;
+          statusDot.classList.remove('idle');
+          flightModeLabel.textContent = 'Interception Active';
+        }
+      });
+
+      // Touch Support
+      window.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 0) {
+          mouseX = e.touches[0].clientX;
+          mouseY = e.touches[0].clientY;
+          hasMouseMoved = true;
+          lastMouseMoveTime = performance.now();
+          if (isIdle) {
+            isIdle = false;
+            statusDot.classList.remove('idle');
+            flightModeLabel.textContent = 'Interception Active';
+          }
+        }
+      }, { passive: true });
+
+      // ─── Angular Interpolation (Shortest Path) ──────────────────────────────
+      function lerpAngle(from, to, t) {
+        let diff = (to - from) % (Math.PI * 2);
+        if (diff < -Math.PI) diff += Math.PI * 2;
+        if (diff > Math.PI) diff -= Math.PI * 2;
+        return from + diff * t;
+      }
+
+      // ─── Main Animation Loop (60 FPS) ───────────────────────────────────────
+      let lastFrameTime = performance.now();
+
+      function tick(now) {
+        requestAnimationFrame(tick);
+        const dt = Math.min((now - lastFrameTime) / 1000, 0.1);
+        lastFrameTime = now;
+
+        // 1. Idle Detection (after 2.5s of no mouse movement)
+        if (now - lastMouseMoveTime > 2500) {
+          if (!isIdle) {
+            isIdle = true;
+            statusDot.classList.add('idle');
+            flightModeLabel.textContent = 'Autonomous Cruise';
+            idleAnchorX = px;
+            idleAnchorY = py;
+          }
+        }
+
+        // 2. Compute Target Coordinates
+        let targetX = mouseX;
+        let targetY = mouseY;
+
+        if (isIdle) {
+          idleTime += dt * 0.85;
+          // Organic Lissajous / Lemniscate flight pattern within screen bounds
+          const margin = 120;
+          const travelWidth = (width - margin * 2) * 0.45;
+          const travelHeight = (height - margin * 2) * 0.38;
+          const cx = width / 2;
+          const cy = height / 2;
+
+          targetX = cx + Math.sin(idleTime * 0.7) * travelWidth;
+          targetY = cy + Math.sin(idleTime * 1.4) * travelHeight * 0.7 + Math.cos(idleTime * 0.5) * 50;
+        }
+
+        // 3. Physical Lag / Spring Acceleration Towards Target
+        const dx = targetX - px;
+        const dy = targetY - py;
+        const distance = Math.hypot(dx, dy);
+
+        // Responsive spring + friction physics (Noticeable, elegant lag)
+        const springK = isIdle ? 1.8 : 3.2; // Acceleration strength
+        const damping = isIdle ? 0.91 : 0.88; // Friction factor
+
+        const ax = dx * springK;
+        const ay = dy * springK;
+
+        vx = (vx + ax * dt) * damping;
+        vy = (vy + ay * dt) * damping;
+
+        // Clamp maximum flight speed for elegant visual control
+        const speed = Math.hypot(vx, vy);
+        const maxSpeed = isIdle ? 220 : 650;
+        if (speed > maxSpeed) {
+          vx = (vx / speed) * maxSpeed;
+          vy = (vy / speed) * maxSpeed;
+        }
+
+        // Integrate Position
+        px += vx * dt;
+        py += vy * dt;
+
+        // Keep plane smoothly inside viewport boundaries
+        const boundaryPadding = 24;
+        px = Math.max(boundaryPadding, Math.min(width - boundaryPadding, px));
+        py = Math.max(boundaryPadding, Math.min(height - boundaryPadding, py));
+
+        // 4. Orientation & Bank Angle
+        // Only steer if speed is above threshold to prevent twitching when parked
+        let targetAngle = currentAngle;
+        if (speed > 12) {
+          // Math.atan2 gives angle from positive X axis.
+          // SVG is drawn pointing UP (along negative Y axis, so -PI/2 is straight up).
+          // We compute angle and adjust by +PI/2 so 0 radians points along velocity.
+          targetAngle = Math.atan2(vy, vx) + Math.PI / 2;
+        }
+
+        const prevAngle = currentAngle;
+        currentAngle = lerpAngle(currentAngle, targetAngle, 0.12);
+
+        // Dynamic Bank / Roll Effect when turning
+        let angleDelta = (currentAngle - prevAngle);
+        if (angleDelta < -Math.PI) angleDelta += Math.PI * 2;
+        if (angleDelta > Math.PI) angleDelta -= Math.PI * 2;
+        const targetBank = Math.max(-18, Math.min(18, angleDelta * 380));
+        currentBank += (targetBank - currentBank) * 0.15;
+
+        // 5. Update Airplane DOM Transform
+        // Center offset is 22px (half of 44px container)
+        const transformStr = `translate3d(${px - 22}px, ${py - 22}px, 0) rotate(${currentAngle * (180 / Math.PI)}deg) skewX(${currentBank}deg)`;
+        airplaneContainer.style.transform = transformStr;
+
+        // 6. Spawn Contrail Particles at Jet Nozzles
+        // Jet nozzles are at the rear of plane (relative to heading)
+        if (speed > 25) {
+          const rearDist = 18; // px behind plane center
+          // Vector pointing backwards
+          const backAngle = currentAngle + Math.PI / 2;
+          const rearX = px + Math.cos(backAngle) * rearDist;
+          const rearY = py + Math.sin(backAngle) * rearDist;
+
+          // Spawn particle
+          particles.push(new ContrailParticle(rearX, rearY, backAngle, speed));
+          if (particles.length > MAX_PARTICLES) {
+            particles.shift();
+          }
+        }
+
+        // 7. Render Particles on Trail Canvas
+        ctx.clearRect(0, 0, width, height);
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          if (p.update()) {
+            p.draw(ctx);
+          } else {
+            particles.splice(i, 1);
+          }
+        }
+
+        // 8. Update Minimal HUD Telemetry
+        valSpeed.textContent = (speed * 0.18).toFixed(1);
+        let degrees = Math.round((currentAngle * (180 / Math.PI)) % 360);
+        if (degrees < 0) degrees += 360;
+        valHeading.textContent = String(degrees).padStart(3, '0');
+        valLag.textContent = Math.round(distance);
+      }
+
+      // Start loop
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>
